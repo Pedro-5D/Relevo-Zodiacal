@@ -394,8 +394,17 @@
                         <input type="time" class="form-control" id="time">
                     </div>
                 </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" id="calculateBtn">Calcular Carta Astral</button>
+                            <button class="btn btn-info" id="calculatePredictionsBtn" onclick="calculatePredictions()">Calcular Predicciones</button>
+                            <button class="btn btn-outline-secondary" id="demoPredictionsBtn" onclick="generarPrediccionesDemo()">Mostrar Ejemplo Demo</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-
+            
             <!-- Formulario de tránsitos -->
             <div class="row mb-3">
                 <div class="col-md-4">
@@ -457,7 +466,6 @@
                     </div>
                 </div>
                 
-                <!-- Sección de Predicciones -->
                 <div class="predicciones-container d-none" id="prediccionesContainer">                    
                     <div class="date-filter mb-3">
                         <div class="row">
@@ -480,12 +488,14 @@
                             </div>
                         </div>
                     </div>
-                    
+    
                     <div id="prediccionesList">
-                        <div class="alert alert-info">Calculando predicciones...</div>
+                        <div class="alert alert-info">
+                            <p>Para ver predicciones, utilice el botón "Calcular Predicciones" después de generar la carta natal.</p>
+                            <p>O pruebe "Mostrar Ejemplo Demo" para ver un ejemplo con datos simulados.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
             
             <!-- Información y Coincidencias -->
             <div class="col-md-4">
@@ -1125,92 +1135,150 @@ function calculateChart() {
     });
 }
 
-        // Función para calcular predicciones a largo plazo - ACTUALIZADA
-        function calculatePredictions() {
-            console.log("Calculando predicciones a largo plazo...");
+        // Función para calcular predicciones a largo plazo - MEJORADA
+function calculatePredictions() {
+    console.log("Calculando predicciones a largo plazo...");
+    
+    // Mostrar contenedor de predicciones
+    prediccionesContainer.classList.remove('d-none');
+    prediccionesList.innerHTML = '<div class="alert alert-info">Calculando predicciones... Esto puede tardar unos momentos.</div>';
+    
+    // Verificar que tenemos los datos necesarios
+    if (!birthDate) {
+        prediccionesList.innerHTML = '<div class="alert alert-warning">No se pudo determinar la fecha de nacimiento. Por favor, complete la carta natal primero.</div>';
+        return;
+    }
+    
+    if (!isDry && isDry !== false) {
+        prediccionesList.innerHTML = '<div class="alert alert-warning">No se pudo determinar si la carta es seca o húmeda. Por favor, complete la carta natal primero.</div>';
+        return;
+    }
+    
+    if (!ascendenteName) {
+        prediccionesList.innerHTML = '<div class="alert alert-warning">No se pudo determinar el ascendente. Por favor, complete la carta natal primero.</div>';
+        return;
+    }
+    
+    // Obtener datos de la fecha de nacimiento
+    const birthDateObj = new Date(birthDate);
+    const birthYear = birthDateObj.getFullYear();
+    
+    // Definir rango de años para predicciones (por defecto, 84 años desde el nacimiento)
+    const startYear = birthYear;
+    const endYear = birthYear + 84;
+    
+    console.log(`Calculando predicciones desde ${startYear} hasta ${endYear}`);
+    
+    // Preparar datos para enviar
+    const predictionsData = {
+        birthDate: birthDate,
+        isDry: isDry,
+        ascendente: ascendenteName,
+        startYear: startYear,
+        endYear: endYear,
+        puntoReferencia: puntoReferenciaSeleccionado,
+        cartaNatal: natalPlanets
+    };
+    
+    // Mostrar información del cálculo
+    prediccionesList.innerHTML = `
+        <div class="alert alert-info">
+            <p>Calculando predicciones para:</p>
+            <ul>
+                <li>Fecha de nacimiento: ${new Date(birthDate).toLocaleDateString('es-ES')}</li>
+                <li>Tipo de carta: ${isDry ? 'Seca (diurna)' : 'Húmeda (nocturna)'}</li>
+                <li>Ascendente: ${ascendenteName}</li>
+                <li>Punto de referencia: ${puntoReferenciaSeleccionado || 'Todos'}</li>
+                <li>Período: ${startYear} - ${endYear}</li>
+            </ul>
+        </div>
+    `;
+    
+    // Si estamos en modo demo/cliente (sin servidor), generar predicciones simuladas
+    if (typeof window.demoMode !== 'undefined' && window.demoMode) {
+        console.log("Modo demo activado, generando predicciones simuladas");
+        
+        // Simulamos una pequeña demora para que parezca que está calculando
+        setTimeout(() => {
+            predicciones = generarPrediccionesSimuladas(birthDateObj, startYear, endYear);
             
-            // Mostrar contenedor de predicciones
-            prediccionesContainer.classList.remove('d-none');
-            prediccionesList.innerHTML = '<div class="alert alert-info">Calculando predicciones... Esto puede tardar unos momentos.</div>';
+            // Generar lista de años para el filtro
+            generateYearOptions();
             
-            // Preparar datos para enviar - incluir datos completos
-            const predictionsData = {
-                birthDate: birthDate,
-                isDry: isDry,
-                ascendente: ascendenteName,
-                // Si no enviamos start/end year, el servidor usa por defecto el rango completo de 84 años
-                startYear: null, 
-                endYear: null,
-                puntoReferencia: puntoReferenciaSeleccionado,  // Enviar el punto de referencia seleccionado
-                cartaNatal: natalPlanets // Incluir la carta natal completa
-            };
-            
-            // Llamada al servidor para calcular predicciones
-            fetch('/calculate_forecasts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(predictionsData)
-            })
-            .then(response => {
-                console.log("Respuesta de predicciones recibida:", response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log("Predicciones recibidas:", data);
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                // Guardar predicciones
-                predicciones.picosMayor = data.picos?.mayor || [];
-                predicciones.picosModerado = data.picos?.moderado || [];
-                predicciones.picosMenor = data.picos?.menor || [];
-                predicciones.liberaciones = data.liberaciones || [];
-                predicciones.disoluciones = data.disoluciones || [];
-                
-                // Guardar información de puntos de referencia
-                if (data.puntos_referencia) {
-                    puntosReferencia = data.puntos_referencia;
-                    // Generar botones para puntos de referencia
-                    generarBotonesPuntosReferencia();
-                }
-                
-                // Generar lista de años para el filtro
-                generateYearOptions();
-                
-                // Mostrar predicciones
-                renderPredictions();
-            })
-            .catch(error => {
-                console.error('Error calculando predicciones:', error);
-                prediccionesList.innerHTML = `
-                    <div class="alert alert-warning">
-                        <h5>Error al calcular predicciones</h5>
-                        <p>${error.message}</p>
-                        <p>Las predicciones requieren que el servidor esté configurado correctamente.</p>
-                    </div>
-                `;
-                
-                // Al menos crear los botones de puntos de referencia por si fallan las predicciones
-                if (Object.keys(puntosReferencia).length === 0) {
-                    puntosReferencia = {
-                        "ASCENDENTE": {
-                            "descripcion": "Punto de la carta que representa el inicio de la primera casa."
-                        },
-                        "PARTE_FORTUNA": {
-                            "descripcion": "Punto calculado en base a las posiciones del Sol, la Luna y el Ascendente."
-                        },
-                        "PARTE_ESPIRITU": {
-                            "descripcion": "Punto inverso a la Parte de Fortuna, representa la conciencia y el espíritu."
-                        }
-                    };
-                    generarBotonesPuntosReferencia();
-                }
-            });
+            // Mostrar predicciones
+            renderPredictions();
+        }, 1500);
+        
+        return;
+    }
+    
+    // Llamada al servidor para calcular predicciones
+    fetch('/calculate_forecasts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(predictionsData)
+    })
+    .then(response => {
+        console.log("Respuesta de predicciones recibida:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Predicciones recibidas:", data);
+        
+        if (data.error) {
+            throw new Error(data.error);
         }
+        
+        // Guardar predicciones
+        predicciones.picosMayor = data.picos?.mayor || [];
+        predicciones.picosModerado = data.picos?.moderado || [];
+        predicciones.picosMenor = data.picos?.menor || [];
+        predicciones.liberaciones = data.liberaciones || [];
+        predicciones.disoluciones = data.disoluciones || [];
+        
+        // Guardar información de puntos de referencia
+        if (data.puntos_referencia) {
+            puntosReferencia = data.puntos_referencia;
+            // Generar botones para puntos de referencia
+            generarBotonesPuntosReferencia();
+        }
+        
+        // Generar lista de años para el filtro
+        generateYearOptions();
+        
+        // Mostrar predicciones
+        renderPredictions();
+    })
+    .catch(error => {
+        console.error('Error calculando predicciones:', error);
+        prediccionesList.innerHTML = `
+            <div class="alert alert-warning">
+                <h5>Error al calcular predicciones</h5>
+                <p>${error.message}</p>
+                <p>Las predicciones requieren que el servidor esté configurado correctamente.</p>
+                <button class="btn btn-outline-secondary mt-2" onclick="generarPrediccionesDemo()">Mostrar Ejemplo Demo</button>
+            </div>
+        `;
+        
+        // Al menos crear los botones de puntos de referencia por si fallan las predicciones
+        if (Object.keys(puntosReferencia).length === 0) {
+            puntosReferencia = {
+                "ASCENDENTE": {
+                    "descripcion": "Punto de la carta que representa el inicio de la primera casa."
+                },
+                "PARTE_FORTUNA": {
+                    "descripcion": "Punto calculado en base a las posiciones del Sol, la Luna y el Ascendente."
+                },
+                "PARTE_ESPIRITU": {
+                    "descripcion": "Punto inverso a la Parte de Fortuna, representa la conciencia y el espíritu."
+                }
+            };
+            generarBotonesPuntosReferencia();
+        }
+    });
+}
 
         // Función para generar botones de puntos de referencia
         function generarBotonesPuntosReferencia() {
@@ -1276,190 +1344,270 @@ function calculateChart() {
         }
 
         // Función para generar opciones de años para el filtro
-        function generateYearOptions() {
-            // Limpiar el select
-            yearFilterSelect.innerHTML = '<option value="all">Todos los años</option>';
-            
-            // Recopilar todas las fechas de las predicciones
-            const allDates = [
-                ...predicciones.picosMayor.map(p => p.fecha),
-                ...predicciones.picosModerado.map(p => p.fecha),
-                ...predicciones.picosMenor.map(p => p.fecha),
-                ...predicciones.liberaciones.map(p => p.fecha),
-                ...predicciones.disoluciones.map(p => p.fecha)
-            ];
-            
-            // Extraer los años únicos
-            const years = new Set();
-            allDates.forEach(fecha => {
-                const year = fecha.split('-')[0];
-                years.add(year);
-            });
-            
-            // Ordenar años numéricamente
-            const sortedYears = Array.from(years).sort((a, b) => parseInt(a) - parseInt(b));
-            
-            // Agregar opciones al select
-            sortedYears.forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearFilterSelect.appendChild(option);
-            });
+function generateYearOptions() {
+    // Limpiar el select
+    yearFilterSelect.innerHTML = '<option value="all">Todos los años</option>';
+    
+    // Recopilar todas las fechas de las predicciones
+    const allDates = [
+        ...predicciones.picosMayor.map(p => p.fecha),
+        ...predicciones.picosModerado.map(p => p.fecha),
+        ...predicciones.picosMenor.map(p => p.fecha),
+        ...predicciones.liberaciones.map(p => p.fecha),
+        ...predicciones.disoluciones.map(p => p.fecha)
+    ];
+    
+    // Verificar si hay fechas para procesar
+    if (allDates.length === 0) {
+        console.log("No hay fechas de predicciones para generar opciones de años");
+        return;
+    }
+    
+    console.log("Fechas encontradas para generar opciones:", allDates);
+    
+    // Extraer los años únicos
+    const years = new Set();
+    allDates.forEach(fecha => {
+        if (fecha && fecha.includes('-')) {
+            const year = fecha.split('-')[0];
+            years.add(year);
+        } else {
+            console.warn("Formato de fecha incorrecto:", fecha);
         }
+    });
+    
+    // Ordenar años numéricamente
+    const sortedYears = Array.from(years).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    console.log("Años únicos encontrados:", sortedYears);
+    
+    // Agregar opciones al select
+    sortedYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilterSelect.appendChild(option);
+    });
+    
+    // Si no se agregaron años, mostrar mensaje
+    if (sortedYears.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No hay años disponibles";
+        option.disabled = true;
+        yearFilterSelect.appendChild(option);
+    }
+}
 
         // Función para renderizar predicciones
-        function renderPredictions() {
-            // Obtener filtros seleccionados
-            const yearFilter = yearFilterSelect.value;
-            const tipoFilter = tipoPrediccionSelect.value;
-            
-            // Recopilar todas las predicciones
-            let allPredictions = [];
-            
-            // Picos Mayores
-            if (tipoFilter === 'all' || tipoFilter === 'pico-mayor') {
-                predicciones.picosMayor.forEach(pico => {
-                    allPredictions.push({
-                        fecha: pico.fecha,
-                        tipo: 'pico-mayor',
-                        descripcion: `Pico Mayor: ${pico.planeta} con fuerza ${pico.fuerza}`,
-                        planeta: pico.planeta,
-                        fuerza: pico.fuerza,
-                        punto: pico.punto,
-                        angulo: pico.angulo
-                    });
+function renderPredictions() {
+    // Obtener filtros seleccionados
+    const yearFilter = yearFilterSelect.value;
+    const tipoFilter = tipoPrediccionSelect.value;
+    
+    console.log("Renderizando predicciones con filtros:", yearFilter, tipoFilter);
+    
+    // Verificar si tenemos predicciones para renderizar
+    const hayPicosMayor = predicciones.picosMayor && predicciones.picosMayor.length > 0;
+    const hayPicosModerado = predicciones.picosModerado && predicciones.picosModerado.length > 0;
+    const hayPicosMenor = predicciones.picosMenor && predicciones.picosMenor.length > 0;
+    const hayLiberaciones = predicciones.liberaciones && predicciones.liberaciones.length > 0;
+    const hayDisoluciones = predicciones.disoluciones && predicciones.disoluciones.length > 0;
+    
+    if (!hayPicosMayor && !hayPicosModerado && !hayPicosMenor && !hayLiberaciones && !hayDisoluciones) {
+        prediccionesList.innerHTML = '<div class="alert alert-info">No hay predicciones disponibles. Por favor, calcule las predicciones primero.</div>';
+        return;
+    }
+    
+    // Recopilar todas las predicciones
+    let allPredictions = [];
+    
+    // Picos Mayores
+    if ((tipoFilter === 'all' || tipoFilter === 'pico-mayor') && hayPicosMayor) {
+        predicciones.picosMayor.forEach(pico => {
+            if (pico && pico.fecha) {
+                allPredictions.push({
+                    fecha: pico.fecha,
+                    tipo: 'pico-mayor',
+                    descripcion: `Pico Mayor: ${pico.planeta} con fuerza ${pico.fuerza}`,
+                    planeta: pico.planeta,
+                    fuerza: pico.fuerza,
+                    punto: pico.punto,
+                    angulo: pico.angulo,
+                    signo: pico.signo || ""
                 });
             }
-            
-            // Picos Moderados
-            if (tipoFilter === 'all' || tipoFilter === 'pico-moderado') {
-                predicciones.picosModerado.forEach(pico => {
-                    allPredictions.push({
-                        fecha: pico.fecha,
-                        tipo: 'pico-moderado',
-                        descripcion: `Pico Moderado: ${pico.planeta} con fuerza ${pico.fuerza}`,
-                        planeta: pico.planeta,
-                        fuerza: pico.fuerza,
-                        punto: pico.punto,
-                        angulo: pico.angulo
-                    });
+        });
+    }
+    
+    // Picos Moderados
+    if ((tipoFilter === 'all' || tipoFilter === 'pico-moderado') && hayPicosModerado) {
+        predicciones.picosModerado.forEach(pico => {
+            if (pico && pico.fecha) {
+                allPredictions.push({
+                    fecha: pico.fecha,
+                    tipo: 'pico-moderado',
+                    descripcion: `Pico Moderado: ${pico.planeta} con fuerza ${pico.fuerza}`,
+                    planeta: pico.planeta,
+                    fuerza: pico.fuerza,
+                    punto: pico.punto,
+                    angulo: pico.angulo,
+                    signo: pico.signo || ""
                 });
             }
-            
-            // Picos Menores
-            if (tipoFilter === 'all' || tipoFilter === 'pico-menor') {
-                predicciones.picosMenor.forEach(pico => {
-                    allPredictions.push({
-                        fecha: pico.fecha,
-                        tipo: 'pico-menor',
-                        descripcion: `Pico Menor: ${pico.planeta} con fuerza ${pico.fuerza}`,
-                        planeta: pico.planeta,
-                        fuerza: pico.fuerza,
-                        punto: pico.punto,
-                        angulo: pico.angulo
-                    });
+        });
+    }
+    
+    // Picos Menores
+    if ((tipoFilter === 'all' || tipoFilter === 'pico-menor') && hayPicosMenor) {
+        predicciones.picosMenor.forEach(pico => {
+            if (pico && pico.fecha) {
+                allPredictions.push({
+                    fecha: pico.fecha,
+                    tipo: 'pico-menor',
+                    descripcion: `Pico Menor: ${pico.planeta} con fuerza ${pico.fuerza}`,
+                    planeta: pico.planeta,
+                    fuerza: pico.fuerza,
+                    punto: pico.punto,
+                    angulo: pico.angulo,
+                    signo: pico.signo || ""
                 });
             }
-            
-            // Liberaciones
-            if (tipoFilter === 'all' || tipoFilter === 'liberacion') {
-                predicciones.liberaciones.forEach(lib => {
-                    allPredictions.push({
-                        fecha: lib.fecha,
-                        tipo: 'liberacion',
-                        descripcion: `Liberación: ${lib.planeta_liberador} libera a ${lib.planeta_liberado} (${lib.punto})`,
-                        planeta_liberador: lib.planeta_liberador,
-                        planeta_liberado: lib.planeta_liberado,
-                        condicion: lib.condicion,
-                        punto: lib.punto,
-                        angulo: lib.angulo
-                    });
+        });
+    }
+    
+    // Liberaciones
+    if ((tipoFilter === 'all' || tipoFilter === 'liberacion') && hayLiberaciones) {
+        predicciones.liberaciones.forEach(lib => {
+            if (lib && lib.fecha) {
+                allPredictions.push({
+                    fecha: lib.fecha,
+                    tipo: 'liberacion',
+                    descripcion: `Liberación: ${lib.planeta_liberador} libera a ${lib.planeta_liberado} (${lib.punto || ''})`,
+                    planeta_liberador: lib.planeta_liberador,
+                    planeta_liberado: lib.planeta_liberado,
+                    condicion: lib.condicion,
+                    punto: lib.punto,
+                    angulo: lib.angulo,
+                    signo: lib.signo || ""
                 });
             }
-            
-            // Disoluciones
-            if (tipoFilter === 'all' || tipoFilter === 'disolucion') {
-                predicciones.disoluciones.forEach(dis => {
-                    allPredictions.push({
-                        fecha: dis.fecha,
-                        tipo: 'disolucion',
-                        descripcion: `Disolución: enlace entre ${dis.planeta1} y ${dis.planeta2}`,
-                        planeta1: dis.planeta1,
-                        planeta2: dis.planeta2
-                    });
+        });
+    }
+    
+    // Disoluciones
+    if ((tipoFilter === 'all' || tipoFilter === 'disolucion') && hayDisoluciones) {
+        predicciones.disoluciones.forEach(dis => {
+            if (dis && dis.fecha) {
+                allPredictions.push({
+                    fecha: dis.fecha,
+                    tipo: 'disolucion',
+                    descripcion: `Disolución: enlace entre ${dis.planeta1} y ${dis.planeta2}`,
+                    planeta1: dis.planeta1,
+                    planeta2: dis.planeta2,
+                    signo: dis.signo || ""
                 });
             }
-            
-            // Filtrar por año si es necesario
-            if (yearFilter !== 'all') {
-                allPredictions = allPredictions.filter(pred => pred.fecha.startsWith(yearFilter));
-            }
-            
-            // Ordenar por fecha
-            allPredictions.sort((a, b) => (a.fecha > b.fecha) ? 1 : -1);
-            
-            // Mostrar resultados
-            if (allPredictions.length === 0) {
-                prediccionesList.innerHTML = '<div class="alert alert-info">No hay predicciones que coincidan con los filtros seleccionados.</div>';
-                return;
-            }
-            
-            // Agrupar por año
-            const predictionsByYear = {};
-            allPredictions.forEach(pred => {
-                const year = pred.fecha.split('-')[0];
-                if (!predictionsByYear[year])
-                    predictionsByYear[year] = [];
-                predictionsByYear[year].push(pred);
-            });
-            
-            // Generar HTML
-            let html = '';
-            Object.keys(predictionsByYear).sort().forEach(year => {
-                html += `
-                    <div class="year-group" data-year="${year}">
-                        <div class="year-header" onclick="toggleYearGroup('${year}')">
-                            ${year} <span class="badge bg-primary">${predictionsByYear[year].length}</span> <span class="float-end">▼</span>
-                        </div>
-                        <div class="year-content" id="year-content-${year}">
-                `;
+        });
+    }
+    
+    // Verificar si hay predicciones después de filtrar
+    if (allPredictions.length === 0) {
+        prediccionesList.innerHTML = '<div class="alert alert-info">No hay predicciones que coincidan con los filtros seleccionados.</div>';
+        return;
+    }
+    
+    console.log("Total de predicciones encontradas:", allPredictions.length);
+    
+    // Filtrar por año si es necesario
+    if (yearFilter !== 'all') {
+        allPredictions = allPredictions.filter(pred => pred.fecha && pred.fecha.startsWith(yearFilter));
+        console.log(`Predicciones filtradas por año ${yearFilter}:`, allPredictions.length);
+    }
+    
+    // Verificar si hay predicciones después de filtrar por año
+    if (allPredictions.length === 0) {
+        prediccionesList.innerHTML = '<div class="alert alert-info">No hay predicciones para el año seleccionado.</div>';
+        return;
+    }
+    
+    // Ordenar por fecha
+    allPredictions.sort((a, b) => (a.fecha > b.fecha) ? 1 : -1);
+    
+    // Agrupar por año
+    const predictionsByYear = {};
+    allPredictions.forEach(pred => {
+        if (!pred.fecha) return; // Ignorar predicciones sin fecha
+        
+        const year = pred.fecha.split('-')[0];
+        if (!predictionsByYear[year])
+            predictionsByYear[year] = [];
+        predictionsByYear[year].push(pred);
+    });
+    
+    // Generar HTML
+    let html = '';
+    Object.keys(predictionsByYear).sort().forEach(year => {
+        html += `
+            <div class="year-group" data-year="${year}">
+                <div class="year-header" onclick="toggleYearGroup('${year}')">
+                    ${year} <span class="badge bg-primary">${predictionsByYear[year].length}</span> <span class="float-end">▼</span>
+                </div>
+                <div class="year-content" id="year-content-${year}">
+        `;
+        
+        predictionsByYear[year].forEach(pred => {
+            try {
+                const date = new Date(pred.fecha);
+                const formattedDate = date.toLocaleDateString('es-ES', { 
+                    day: '2-digit', 
+                    month: 'long',
+                    year: 'numeric'  // Agregamos el año para mayor claridad
+                });
                 
-                predictionsByYear[year].forEach(pred => {
-                    const date = new Date(pred.fecha);
-                    const formattedDate = date.toLocaleDateString('es-ES', { 
-                        day: '2-digit', 
-                        month: 'long'
-                    });
-                    
-                    // Añadimos más detalles a la descripción cuando tenemos ángulos
-                    let detalles = '';
-                    if (pred.punto && pred.angulo) {
-                        detalles = ` (${pred.punto}, ángulo ${pred.angulo}°)`;
-                    }
-                    
-                    html += `
-                        <div class="prediccion-item prediccion-${pred.tipo}" data-fecha="${pred.fecha}" onclick="showTransitForDate('${pred.fecha}')">
-                            <div class="prediccion-fecha">${formattedDate}</div>
-                            <div>${pred.descripcion}${detalles}</div>
-                        </div>
-                    `;
-                });
+                // Añadimos más detalles a la descripción cuando tenemos ángulos y signos
+                let detalles = '';
+                if (pred.punto && pred.angulo) {
+                    detalles = ` (${pred.punto}, ángulo ${pred.angulo}°)`;
+                }
+                if (pred.signo) {
+                    detalles += ` en ${pred.signo}`;
+                }
                 
                 html += `
-                        </div>
+                    <div class="prediccion-item prediccion-${pred.tipo}" data-fecha="${pred.fecha}" onclick="showTransitForDate('${pred.fecha}')">
+                        <div class="prediccion-fecha">${formattedDate}</div>
+                        <div>${pred.descripcion}${detalles}</div>
                     </div>
                 `;
-            });
-            
-            prediccionesList.innerHTML = html;
-            
-            // Expandir el primer año por defecto
-            const firstYearContent = document.getElementById(`year-content-${Object.keys(predictionsByYear).sort()[0]}`);
-            if (firstYearContent) {
-                firstYearContent.style.display = 'block';
+            } catch (e) {
+                console.error("Error al formatear fecha:", pred.fecha, e);
+                // Incluir un elemento con la información básica en caso de error
+                html += `
+                    <div class="prediccion-item prediccion-${pred.tipo}" data-fecha="${pred.fecha}" onclick="showTransitForDate('${pred.fecha}')">
+                        <div class="prediccion-fecha">${pred.fecha}</div>
+                        <div>${pred.descripcion}</div>
+                    </div>
+                `;
             }
-        }
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    prediccionesList.innerHTML = html;
+    
+    // Expandir el primer año por defecto
+    const firstYearContent = document.getElementById(`year-content-${Object.keys(predictionsByYear).sort()[0]}`);
+    if (firstYearContent) {
+        firstYearContent.style.display = 'block';
+    }
+    
+    console.log("Predicciones renderizadas correctamente");
+}
 
         // Función para expandir/contraer grupos de años
         function toggleYearGroup(year) {
