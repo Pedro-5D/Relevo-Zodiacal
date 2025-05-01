@@ -143,64 +143,64 @@ COLORS = {
 # Nuevas constantes para dignidades planetarias según izarren.top
 DIGNIDADES = {
     'SOL': {
-        'domicilio': ['SCORPIO', 'GEMINI'], 
-        'exaltacion': ['LEO', 'ARIES', 'CAPRICORN', 'VIRGO'], 
-        'caida': ['CANCER', 'PISCES', 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'exilio': ['TAURUS', 'SAGITTARIUS']
+        'domicilio': ['ESCORPIO', 'GÉMINIS'], 
+        'exaltacion': ['LEO', 'ARIES', 'CAPRICORNIO', 'VIRGO'], 
+        'caida': ['CÁNCER', 'PISCIS', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
+        'exilio': ['TAURO', 'SAGITARIO']  # TAURO está en exilio para el SOL
     },
     'LUNA': {
-        'domicilio': ['TAURUS', 'SAGITTARIUS'], 
-        'exaltacion': ['CANCER', 'PISCES', 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'caida': ['LEO', 'PISCES', 'LIBRA'], 
-        'exilio': ['SCORPIO', 'GEMINI', 'PEGASUS']
+        'domicilio': ['TAURO', 'SAGITARIO'], 
+        'exaltacion': ['CÁNCER', 'PISCIS', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
+        'caida': ['LEO', 'ARIES', 'PISCIS', 'LIBRA'], 
+        'exilio': ['ESCORPIO', 'GÉMINIS', 'PEGASO']
     },
     'MERCURIO': {
-        'domicilio': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS'], 
-        'exaltacion': ['GEMINI', 'CAPRICORN', 'VIRGO'], 
-        'caida': ['TAURUS' 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'exilio': ['CANCER', 'PISCES', 'SAGITTARIUS']
+        'domicilio': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
+        'exaltacion': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
+        'caida': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
+        'exilio': ['CÁNCER', 'PISCIS', 'SAGITARIO']
     },
     'VENUS': {
-        'domicilio': ['CANCER', 'PISCES', 'SAGITTARIUS'], 
-        'exaltacion': ['TAURUS', 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'caida': ['GEMINI', 'CAPRICORN', 'VIRGO'], 
-        'exilio': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS']
+        'domicilio': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
+        'exaltacion': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
+        'caida': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
+        'exilio': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO']
     },
     'MARTE': {
-        'domicilio': ['TAURUS', 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'exaltacion': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS'], 
-        'caida': ['CANCER', 'PISCES', 'SAGITTARIUS'], 
-        'exilio': ['GEMINI', 'CAPRICORN', 'VIRGO']
+        'domicilio': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
+        'exaltacion': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
+        'caida': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
+        'exilio': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO']
     },
-    'JÚPITER': {
-        'domicilio': ['GEMINI', 'CAPRICORN', 'VIRGO'], 
-        'exaltacion': ['CANCER', 'PISCES', 'SAGITTARIUS'], 
-        'caida': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS'], 
-        'exilio': ['TAURUS' 'LIBRA', 'AQUARIUS', 'OPHIUCHUS']
+    'JÚPITER': {  # Con acento
+        'domicilio': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
+        'exaltacion': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
+        'caida': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
+        'exilio': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO']
     },
     'SATURNO': {
-        'domicilio': ['LEO', 'ARIES', 'LIBRA', 'AQUARIUS'], 
-        'exaltacion': ['OPHIUCHUS', 'GEMINI'], 
-        'caida': ['TAURUS', 'SCORPIO', 'PEGASUS'], 
-        'exilio': ['CANCER', 'PISCES', 'CAPRICORN', 'VIRGO']
+        'domicilio': ['LEO', 'ARIES', 'LIBRA', 'ACUARIO'], 
+        'exaltacion': ['OFIUCO', 'GÉMINIS'], 
+        'caida': ['TAURO', 'ESCORPIO', 'PEGASO'], 
+        'exilio': ['CÁNCER', 'PISCIS', 'CAPRICORNIO', 'VIRGO']
     },
     'URANO': {
-        'domicilio': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS'], 
-        'exaltacion': ['GEMINI', 'CAPRICORN', 'VIRGO'], 
-        'caida': ['TAURUS' 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'exilio': ['CANCER', 'PISCES', 'SAGITTARIUS']
+        'domicilio': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
+        'exaltacion': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
+        'caida': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'],  # TAURO está en caída para URANO
+        'exilio': ['CÁNCER', 'PISCIS', 'SAGITARIO']
     },
     'NEPTUNO': {
-        'domicilio': ['GEMINI', 'CAPRICORN', 'VIRGO'], 
-        'exaltacion': ['CANCER', 'PISCES', 'SAGITTARIUS'], 
-        'caida': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS'], 
-        'exilio': ['TAURUS' 'LIBRA', 'AQUARIUS', 'OPHIUCHUS']
+        'domicilio': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
+        'exaltacion': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
+        'caida': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
+        'exilio': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO']
     },
-    'PLUTÓN': {
-        'domicilio': ['TAURUS', 'LIBRA', 'AQUARIUS', 'OPHIUCHUS'], 
-        'exaltacion': ['LEO', 'ARIES', 'SCORPIO', 'PEGASUS'], 
-        'caida': ['CANCER', 'PISCES', 'SAGITTARIUS'], 
-        'exilio': ['GEMINI', 'CAPRICORN', 'VIRGO']
+    'PLUTÓN': {  # Con acento
+        'domicilio': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
+        'exaltacion': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
+        'caida': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
+        'exilio': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO']  # CAPRICORNIO está en exilio para PLUTÓN
     }
 }
 
@@ -1089,10 +1089,11 @@ def get_sign(longitude):
 def calcular_dignidad_planetaria(planeta, longitud):
     """
     Calcula la dignidad planetaria basada en la posición
-    Retorna: domicilio, exaltación, caída, exilio o peregrine
+    Retorna: domicilio, exaltación, caída, exilio o peregrino
     """
     signo = get_sign(longitud)
     
+    # Verificar si el planeta está en el diccionario
     if planeta in DIGNIDADES:
         # Verificar domicilio
         if signo in DIGNIDADES[planeta]['domicilio']:
@@ -1109,7 +1110,7 @@ def calcular_dignidad_planetaria(planeta, longitud):
     
     # Si no está en ninguna dignidad especial
     return "peregrino"
-
+    
 # Simulación de datos planetarios para fines de demostración
 def mockCalculatePositions(is_natal=True, asc_sign=None, asc_longitude=None):
     """
@@ -1309,211 +1310,7 @@ def calcular_partes_arabes(positions):
     
     return parte_fortuna, parte_espiritu
 
-# Funciones para Fardarias
-def calculate_duration(planet, level):
-    """Calcula la duración de un periodo de Fardaria."""
-    number = PLANET_DATA[planet]['numero']
-    if level == 1:
-        return number * DURACIONES['AÑO']
-    elif level == 2:
-        return number * DURACIONES['MES']
-    elif level == 3:
-        return number * DURACIONES['SEMANA']
-    elif level == 4:
-        return number * DURACIONES['DIA']
-    return 0
-
-def get_rotated_planets(start_planet, planet_order):
-    """Obtiene la secuencia de planetas rotada a partir del planeta inicial."""
-    index = planet_order.index(start_planet)
-    return planet_order[index:] + planet_order[:index]
-
-def calculate_date(birth_date, day_offset):
-    """Calcula una fecha a partir de una fecha base y un desplazamiento en días."""
-    if isinstance(birth_date, str):
-        birth_date = datetime.strptime(birth_date, '%Y-%m-%d')
-    
-    date = birth_date + timedelta(days=int(day_offset))
-    return date
-
-def calculate_sub_periods(main_planet, level, start_day, end_day, birth_date, planet_order):
-    """Calcula subperiodos de Fardarias."""
-    if level > 4:
-        return []
-    
-    periods = []
-    current_day = start_day
-    rotated_planets = get_rotated_planets(main_planet, planet_order)
-    
-    # Mapa de estimación de signo basado en mes
-    month_sign_map = {
-        1: "CAPRICORN", 2: "AQUARIUS", 3: "PISCES", 
-        4: "ARIES", 5: "TAURUS", 6: "GEMINI",
-        7: "CANCER", 8: "LEO", 9: "VIRGO", 
-        10: "LIBRA", 11: "SCORPIO", 12: "OPHIUCHUS", 13: "SAGITTARIUS"
-    }
-    
-    # Mapa de regentes zodiacales
-    regente_map = {
-        "ARIES": "MARTE",
-        "TAURUS": "VENUS",
-        "GEMINI": "MERCURIO",
-        "CANCER": "LUNA",
-        "LEO": "SOL",
-        "VIRGO": "MERCURIO",
-        "LIBRA": "VENUS",
-        "SCORPIO": "MARTE",
-        "SAGITTARIUS": "JÚPITER",
-        "CAPRICORN": "SOL",
-        "AQUARIUS": "LUNA",
-        "PISCES": "JÚPITER",
-        "OPHIUCHUS": "SATURNO"
-    }
-    
-    for planet in rotated_planets:
-        duration = calculate_duration(planet, level)
-        actual_duration = min(duration, end_day - current_day)
-        
-        if actual_duration > 0:
-            start_date = calculate_date(birth_date, current_day)
-            end_date = calculate_date(birth_date, current_day + actual_duration)
-            
-            # Estimar el signo basado en el mes de inicio
-            signo = month_sign_map.get(start_date.month, "ARIES")
-            regente = regente_map.get(signo, "")
-            
-            period = {
-                'planet': planet,
-                'level': level,
-                'start': start_date.strftime('%Y-%m-%d'),
-                'end': end_date.strftime('%Y-%m-%d'),
-                'startDay': current_day,
-                'durationDays': actual_duration,
-                'sign': signo,
-                'regente': regente
-            }
-            
-            period['subPeriods'] = calculate_sub_periods(
-                planet,
-                level + 1,
-                current_day,
-                current_day + actual_duration,
-                birth_date,
-                planet_order
-            )
-            
-            periods.append(period)
-            current_day += actual_duration
-    
-    return periods
-
-def calculate_fardaria_periods(birth_date, is_dry, start_year=None, end_year=None):
-    """Calcula los periodos de Fardarias para una fecha de nacimiento con filtrado opcional de años."""
-    planet_order = PLANET_ORDER['seco'] if is_dry else PLANET_ORDER['humedo']
-    all_periods = []
-    current_day = 0
-    total_years = 0
-    max_years = 84  # Limitar a 84 años por defecto
-    
-    # Asegurar que birth_date es un objeto datetime
-    if isinstance(birth_date, str):
-        birth_date = datetime.strptime(birth_date, '%Y-%m-%d')
-    
-    # Si se especifican años de inicio y fin, calcular límites en días
-    start_day = 0
-    end_day = max_years * DURACIONES['AÑO']  # Predeterminado a 84 años
-    
-    if start_year is not None and end_year is not None:
-        birth_year = birth_date.year
-        start_offset_years = max(0, start_year - birth_year)
-        end_offset_years = min(max_years, end_year - birth_year + 1)
-        
-        start_day = start_offset_years * DURACIONES['AÑO']
-        end_day = end_offset_years * DURACIONES['AÑO']
-    
-    # Continuar calculando periodos hasta llegar al límite
-    while current_day < end_day:
-        for planet in planet_order:
-            duration = calculate_duration(planet, 1)
-            
-            # Verificar si este periodo está dentro del rango de interés
-            if current_day + duration <= start_day:
-                # El periodo termina antes del rango, saltamos
-                current_day += duration
-                continue
-            
-            if current_day >= end_day:
-                # El periodo comienza después del rango, terminamos
-                break
-            
-            # Calcular parte del periodo dentro del rango
-            period_start_day = max(current_day, start_day)
-            period_end_day = min(current_day + duration, end_day)
-            period_duration = period_end_day - period_start_day
-            
-            if period_duration > 0:
-                start_date = calculate_date(birth_date, period_start_day)
-                end_date = calculate_date(birth_date, period_end_day)
-                
-                # Determinar signo zodiacal del período
-                month_sign_map = {
-                    1: "CAPRICORN", 2: "AQUARIUS", 3: "PISCES", 
-                    4: "ARIES", 5: "TAURUS", 6: "GEMINI",
-                    7: "CANCER", 8: "LEO", 9: "VIRGO", 
-                    10: "LIBRA", 11: "SCORPIO", 12: "OPHIUCHUS", 13: "SAGITTARIUS"
-                }
-                
-                signo = month_sign_map.get(start_date.month, "ARIES")
-                
-                # Determinar regente del signo
-                regente_map = {
-                    "ARIES": "MARTE",
-                    "TAURUS": "VENUS",
-                    "GEMINI": "MERCURIO",
-                    "CANCER": "LUNA",
-                    "LEO": "SOL",
-                    "VIRGO": "MERCURIO",
-                    "LIBRA": "VENUS",
-                    "SCORPIO": "MARTE",
-                    "SAGITTARIUS": "JÚPITER",
-                    "CAPRICORN": "SOL",
-                    "AQUARIUS": "LUNA",
-                    "PISCES": "JÚPITER",
-                    "OPHIUCHUS": "SATURNO"
-                }
-                
-                regente = regente_map.get(signo, "")
-                
-                period = {
-                    'planet': planet,
-                    'level': 1,
-                    'start': start_date.strftime('%Y-%m-%d'),
-                    'end': end_date.strftime('%Y-%m-%d'),
-                    'startDay': period_start_day,
-                    'durationDays': period_duration,
-                    'sign': signo,
-                    'regente': regente
-                }
-                
-                # Añadir subperiodos para la parte dentro del rango
-                period['subPeriods'] = calculate_sub_periods(
-                    planet,
-                    2,
-                    period_start_day,
-                    period_end_day,
-                    birth_date,
-                    planet_order
-                )
-                
-                all_periods.append(period)
-            
-            current_day += duration
-            if current_day >= end_day:
-                break
-    
-    return all_periods
-
-# Funciones para Relevo Zodiacal
+# Función que genera la secuencia de signos a partir del ascendente
 def generar_secuencia(inicio):
     """Genera la secuencia de signos a partir del ascendente."""
     orden = list(SIGNOS.keys())
@@ -1894,6 +1691,15 @@ def calcular_relevodSubperiodos(fecha_nac, dia_inicio, duracion_total, secuencia
                 dia_actual += duracion_real
     
     return periodos
+
+# Función para calcular una fecha a partir de una fecha base y un desplazamiento en días
+def calculate_date(birth_date, day_offset):
+    """Calcula una fecha a partir de una fecha base y un desplazamiento en días."""
+    if isinstance(birth_date, str):
+        birth_date = datetime.strptime(birth_date, '%Y-%m-%d')
+    
+    date = birth_date + timedelta(days=int(day_offset))
+    return date
 
 # Función para calcular picos planetarios, considerando a Mercurio como maléfico
 def calcular_fechas_picos(birth_date, is_dry, ascendente, start_year, end_year):
@@ -2343,82 +2149,6 @@ def calcular_fechas_disolucion(birth_date, is_dry, ascendente, start_year, end_y
     # Ordenar por fecha
     disoluciones.sort(key=lambda x: x["fecha"])
     return disoluciones
-    
-# Función que crea un componente visual de interpretación para el cliente
-def create_interpretacion_html(periodo, parte_referencia="Carta Natal"):
-    """
-    Crea un componente HTML para mostrar la interpretación
-    de un período de tiempo en las predicciones.
-    
-    Args:
-        periodo: Dict con datos del periodo
-        parte_referencia: Referencia para la interpretación (por defecto "Carta Natal")
-    
-    Returns:
-        String con HTML formateado
-    """
-    if not periodo.get('interpretacion'):
-        return ""
-        
-    interp = periodo['interpretacion']
-    
-    # Colores según calidad
-    color_map = {
-        "muy favorable": "#28a745",
-        "favorable": "#5cb85c",
-        "ligeramente favorable": "#a3cfbb",
-        "neutral": "#6c757d",
-        "ligeramente desfavorable": "#ffc107",
-        "desfavorable": "#dc3545",
-        "muy desfavorable": "#8B0000"
-    }
-    
-    color = color_map.get(interp['calidad'], "#6c757d")
-    
-    html = f"""
-    <div class="interpretacion-container" style="border-left: 4px solid {color}; padding: 10px; margin-bottom: 15px; background-color: rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.1);">
-        <h5 style="color: {color};">Interpretación según {parte_referencia}</h5>
-        <p><strong>Calidad del período:</strong> <span style="color: {color};">{interp['calidad'].upper()}</span></p>
-        
-        <div class="razones-container">
-            <strong>Razones:</strong>
-            <ul>
-    """
-    
-    # Añadir razones
-    for razon in interp['razones']:
-        html += f"<li>{razon}</li>"
-    
-    # Si no hay razones
-    if not interp['razones']:
-        html += "<li>No hay factores significativos para este período</li>"
-    
-    html += """
-            </ul>
-        </div>
-    """
-    
-    # Añadir planetas en el signo
-    if interp.get('planetas_en_signo'):
-        html += "<p><strong>Planetas presentes:</strong> " + ", ".join(interp['planetas_en_signo']) + "</p>"
-    
-    # Añadir aspectos duros
-    if interp.get('aspectos_duros'):
-        html += "<p><strong>Aspectos duros:</strong> "
-        aspectos = [f"{asp['planeta']} ({asp['aspecto']})" for asp in interp['aspectos_duros']]
-        html += ", ".join(aspectos) + "</p>"
-    
-    # Añadir aspectos armónicos
-    if interp.get('aspectos_armonicos'):
-        html += "<p><strong>Aspectos armónicos:</strong> "
-        aspectos = [f"{asp['planeta']} ({asp['aspecto']})" for asp in interp['aspectos_armonicos']]
-        html += ", ".join(aspectos) + "</p>"
-    
-    html += """
-    </div>
-    """
-    
-    return html
 
 @app.route('/calculate_forecasts', methods=['POST'])
 def calculate_forecasts():
@@ -2458,9 +2188,6 @@ def calculate_forecasts():
         if punto_referencia:
             print(f"Usando punto de referencia: {punto_referencia}")
         
-        # Calcular periodos de fardarias
-        fardarias = calculate_fardaria_periods(birth_date, is_dry, start_year, end_year)
-        
         # Calcular relevo zodiacal con interpretación si tenemos carta natal
         relevo = calcular_relevodPeriods(birth_date, ascendente, carta_natal, is_dry, start_year, end_year)
         
@@ -2478,7 +2205,6 @@ def calculate_forecasts():
         
         # Preparar resultado
         result = {
-            "fardarias": fardarias,
             "relevo": relevo,
             "disoluciones": disoluciones,
             "picos": picos,
