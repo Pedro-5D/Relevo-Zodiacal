@@ -3425,6 +3425,48 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
 
         // Inicialización
         // Modificar la función init para incluir la configuración de los listeners
+        function init() {
+            console.log("Inicializando aplicación...");
+            
+            // Establecer fecha y hora actuales
+            const now = new Date();
+            dateInput.value = now.toISOString().split('T')[0];
+            timeInput.value = now.toTimeString().slice(0, 5);
+            
+            transitDateInput.value = now.toISOString().split('T')[0];
+            transitTimeInput.value = now.toTimeString().slice(0, 5);
+            
+            // Establecer ciudad predeterminada
+            cityInput.value = "Bilbao, España";
+            transitCityInput.value = "Bilbao, España";
+            
+            // Event listeners para búsqueda de ciudades
+            cityInput.addEventListener('input', debounce(function() {
+                handleCitySearch(cityInput.value, false);
+            }, 300));
+            
+            transitCityInput.addEventListener('input', debounce(function() {
+                handleCitySearch(transitCityInput.value, true);
+            }, 300));
+            
+            // Event listeners para toggles y botones
+            showTransitsToggle.addEventListener('change', toggleTransits);
+            calculateBtn.addEventListener('click', calculateChart);
+            
+            // Event listeners para filtros de predicciones
+            yearFilterSelect.addEventListener('change', renderPredictions);
+            tipoPrediccionSelect.addEventListener('change', renderPredictions);
+            
+            // Configurar inicialmente los controles de tránsitos
+            toggleTransits();
+            
+            // Ocultar loading
+            loadingIndicator.style.display = 'none';
+            
+            console.log("Aplicación inicializada correctamente");
+        }
+
+        // Modificar la función init para incluir la configuración de los listeners
 function initRelevo() {
     // Verificar si ya existe la función init
     const originalInit = window.init;
@@ -3445,25 +3487,7 @@ function initRelevo() {
         document.addEventListener('DOMContentLoaded', setupRelevoZodiacalListeners);
     }
 }
-
-// Ejecutar la función de inicialización de Relevo
-initRelevo();
         
-// Set up event listeners for Relevo Zodiacal radio buttons
-const radioButtons = document.querySelectorAll('input[name="puntoReferenciaRelevo"]');
-radioButtons.forEach(radio => {
-    radio.addEventListener('change', () => {
-        // Recalculate Relevo Zodiacal when the reference point changes
-        calcularYMostrarRelevoZodiacal();
-    });
-});
-
-// Make sure to add this to the set of functions exposed to the global scope
-window.calcularYMostrarRelevoZodiacal = calcularYMostrarRelevoZodiacal;
-            
-            console.log("Aplicación inicializada correctamente");
-        }
-
         // Inicializar la aplicación cuando el DOM esté listo
         init();
     });
