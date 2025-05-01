@@ -2304,53 +2304,117 @@ function renderChart() {
             return "ARIES"; // Por defecto
         }
 
-        // Implementación de Relevo Zodiacal
-        // Función para generar la secuencia de signos a partir del ascendente
-        function generarSecuencia(inicio) {
-            // Normalizar el ascendente
-            var ascNormalizado = SIGNOS_NORMALIZADOS[inicio.toLowerCase()] || inicio.toUpperCase();
-            
-            // Lista base de signos en orden
-            var signos = Object.keys(DURACION_POR_NIVEL);
-            
-            // Mapeo de nombres de signos para compatibilidad
-            const signMap = {
-                'ARIES': 'aries',
-                'TAURUS': 'tauro',
-                'GEMINI': 'geminis',
-                'CANCER': 'cancer',
-                'LEO': 'leo',
-                'VIRGO': 'virgo',
-                'LIBRA': 'libra',
-                'SCORPIO': 'escorpio',
-                'OPHIUCHUS': 'ofiuco',
-                'SAGITTARIUS': 'sagitario',
-                'CAPRICORN': 'capricornio',
-                'AQUARIUS': 'acuario',
-                'PISCES': 'piscis'
-            };
-            
-            // Intentar buscar el signo en cualquier formato
-            let pos = -1;
-            if (signMap[ascNormalizado]) {
-                pos = signos.indexOf(signMap[ascNormalizado]);
-            } else {
-                pos = signos.indexOf(ascNormalizado.toLowerCase());
-            }
-            
-            if (pos === -1) {
-                // Si no se encuentra el ascendente, usar ARIES como predeterminado
-                console.log("Ascendente no encontrado en la lista de signos, usando ARIES");
-                pos = signos.indexOf('aries');
-            }
-            
-            // Generar la secuencia rotando la lista desde el ascendente
-            return signos.slice(pos).concat(signos.slice(0, pos));
+       // Función mejorada para generar la secuencia de signos
+function generarSecuencia(inicio) {
+    console.log("Generando secuencia a partir de:", inicio);
+    
+    // Lista base de signos en orden
+    const signos = Object.keys(DURACION_POR_NIVEL);
+    
+    // Verificar que el inicio es una cadena de texto
+    if (typeof inicio !== 'string') {
+        console.error("ERROR: El inicio debe ser una cadena de texto, se recibió:", typeof inicio);
+        // Usar 'aries' como valor predeterminado
+        inicio = 'aries';
+    }
+    
+    // Normalizar el signo inicial (convertir a minúsculas, quitar acentos)
+    const inicioNormalizado = inicio.toLowerCase()
+        .replace('á', 'a')
+        .replace('é', 'e')
+        .replace('í', 'i')
+        .replace('ó', 'o')
+        .replace('ú', 'u');
+    
+    // Mapeo ampliado de nombres de signos para mayor compatibilidad
+    const signoMap = {
+        'aries': 'aries',
+        'tauro': 'tauro',
+        'taurus': 'tauro',
+        'géminis': 'geminis',
+        'geminis': 'geminis',
+        'gemini': 'geminis',
+        'cáncer': 'cancer',
+        'cancer': 'cancer',
+        'canc': 'cancer',
+        'leo': 'leo',
+        'virgo': 'virgo',
+        'vir': 'virgo',
+        'libra': 'libra',
+        'lib': 'libra',
+        'escorpio': 'escorpio',
+        'escorpión': 'escorpio',
+        'scorpio': 'escorpio',
+        'scorp': 'escorpio',
+        'ofiuco': 'ofiuco',
+        'ophiuchus': 'ofiuco',
+        'sagitario': 'sagitario',
+        'sagittarius': 'sagitario',
+        'sag': 'sagitario',
+        'capricornio': 'capricornio',
+        'capricorn': 'capricornio',
+        'cap': 'capricornio',
+        'acuario': 'acuario',
+        'aquarius': 'acuario',
+        'aqu': 'acuario',
+        'piscis': 'piscis',
+        'pisces': 'piscis',
+        'pis': 'piscis'
+    };
+    
+    // También normalizar desde nombres de signos en mayúsculas
+    const signosMayusculas = {
+        'ARIES': 'aries',
+        'TAURO': 'tauro',
+        'TAURUS': 'tauro',
+        'GÉMINIS': 'geminis',
+        'GEMINIS': 'geminis',
+        'GEMINI': 'geminis',
+        'CÁNCER': 'cancer',
+        'CANCER': 'cancer',
+        'LEO': 'leo',
+        'VIRGO': 'virgo',
+        'LIBRA': 'libra',
+        'ESCORPIO': 'escorpio',
+        'SCORPIO': 'escorpio',
+        'OFIUCO': 'ofiuco',
+        'OPHIUCHUS': 'ofiuco',
+        'SAGITARIO': 'sagitario',
+        'SAGITTARIUS': 'sagitario',
+        'CAPRICORNIO': 'capricornio',
+        'CAPRICORN': 'capricornio',
+        'ACUARIO': 'acuario',
+        'AQUARIUS': 'acuario',
+        'PISCIS': 'piscis',
+        'PISCES': 'piscis'
+    };
+    
+    // Intentar encontrar el signo normalizado
+    let inicioMapeado = signoMap[inicioNormalizado] || signosMayusculas[inicio] || inicioNormalizado;
+    
+    // Buscar la posición del signo inicial en la lista
+    let pos = signos.indexOf(inicioMapeado);
+    
+    if (pos === -1) {
+        console.error(`ERROR: Signo "${inicio}" (normalizado como "${inicioMapeado}") no encontrado en la lista de signos.`);
+        console.log("Signos disponibles:", signos);
+        console.log("Usando 'aries' como valor predeterminado.");
+        
+        // Si no se encuentra el signo, usar aries como predeterminado
+        pos = signos.indexOf('aries');
+        
+        // Si por alguna razón 'aries' tampoco se encuentra, usar el primer signo de la lista
+        if (pos === -1) {
+            pos = 0;
+            console.error("ERROR crítico: 'aries' no encontrado en lista de signos. Usando el primero disponible:", signos[0]);
         }
-
-// Improved implementation of the Relevo Zodiacal functionality
-
-// Fixed function to calculate and display Zodiacal Relay
+    }
+    
+    // Generar la secuencia rotando la lista desde el signo inicial
+    const secuencia = signos.slice(pos).concat(signos.slice(0, pos));
+    return secuencia;
+}
+        
 function calcularYMostrarRelevoZodiacal() {
     console.log("Calculating and displaying Zodiacal Relay with selected reference point");
     
