@@ -2416,36 +2416,36 @@ function generarSecuencia(inicio) {
 }
         
 function calcularYMostrarRelevoZodiacal() {
-    console.log("Calculating and displaying Zodiacal Relay with selected reference point");
+    console.log("Calculando y mostrando Relevo Zodiacal con punto de referencia seleccionado");
     
-    // Check if container exists
+    // Verificar si existe el contenedor
     if (!relevoZodiacalContainer) {
-        console.log("Relevo Zodiacal container not found");
+        console.log("Contenedor Relevo Zodiacal no encontrado");
         return;
     }
     
-    // Check if we have the necessary data (natal planets)
+    // Verificar si tenemos los datos necesarios (planetas natales)
     if (!natalPlanets || natalPlanets.length === 0) {
-        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No natal chart data found. Please calculate the chart first.</div>';
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron datos de carta natal. Por favor, calcule la carta primero.</div>';
         return;
     }
     
-    // Get birth date and transit date
+    // Obtener fecha de nacimiento y fecha de tránsito
     const transitDate = transitDateInput ? transitDateInput.value : null;
     
     if (!transitDate) {
-        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No transit date found. Please select a date.</div>';
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontró fecha de tránsito. Por favor, seleccione una fecha.</div>';
         return;
     }
     
     if (!birthDate) {
-        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">Birth date could not be determined.</div>';
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar la fecha de nacimiento.</div>';
         return;
     }
     
-    // Get the selected reference point from radio buttons
+    // Obtener el punto de referencia seleccionado de los botones de radio
     const puntoReferenciaElements = document.getElementsByName("puntoReferenciaRelevo");
-    let puntoReferencia = "ASC"; // Default to ASC
+    let puntoReferencia = "ASC"; // Por defecto usar ASC
     
     for (const radio of puntoReferenciaElements) {
         if (radio.checked) {
@@ -2454,98 +2454,141 @@ function calcularYMostrarRelevoZodiacal() {
         }
     }
     
-    // Find the sign of the selected reference point
+    // Encontrar el signo del punto de referencia seleccionado
     let puntoSigno = null;
     const puntoReferenciaPlanet = natalPlanets.find(p => p.name === puntoReferencia);
     
     if (!puntoReferenciaPlanet) {
-        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">Selected reference point not found in the chart.</div>';
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">Punto de referencia seleccionado no encontrado en la carta.</div>';
         return;
     }
     
     puntoSigno = puntoReferenciaPlanet.sign;
-    console.log(`Calculating Relay for: ${puntoReferencia} in ${puntoSigno}`);
+    console.log(`Calculando Relevo para: ${puntoReferencia} en ${puntoSigno}`);
     
-    // Show loading message
-    relevoZodiacalContainer.innerHTML = `<div class="alert alert-info">Calculating Zodiacal Relay for ${puntoReferencia.replace('_', ' ')} in ${puntoSigno}...</div>`;
+    // Mostrar mensaje de carga
+    relevoZodiacalContainer.innerHTML = `<div class="alert alert-info">Calculando Relevo Zodiacal para ${puntoReferencia.replace('_', ' ')} en ${puntoSigno}...</div>`;
     
     try {
-        // Calculate Zodiacal Relay periods with the selected reference point
-        const periodosActivos = calcularRelevoZodiacal(birthDate, puntoSigno, transitDate);
+        // Normalizar el signo para usarlo en la secuencia
+        let signoNormalizado = puntoSigno.toLowerCase();
+        
+        // Conversión de nombres de signos en inglés a español para la secuencia
+        const conversionSignos = {
+            'ARIES': 'aries',
+            'TAURUS': 'tauro',
+            'GEMINI': 'geminis',
+            'CANCER': 'cancer',
+            'LEO': 'leo',
+            'VIRGO': 'virgo',
+            'LIBRA': 'libra',
+            'SCORPIO': 'escorpio',
+            'OPHIUCHUS': 'ofiuco',
+            'SAGITTARIUS': 'sagitario',
+            'CAPRICORN': 'capricornio',
+            'AQUARIUS': 'acuario',
+            'PISCES': 'piscis'
+        };
+        
+        signoNormalizado = conversionSignos[puntoSigno] || signoNormalizado;
+        
+        // Calcular periodos del Relevo Zodiacal con el punto de referencia seleccionado
+        const periodosActivos = calcularRelevoZodiacal(birthDate, signoNormalizado, transitDate);
         
         if (!periodosActivos || periodosActivos.length === 0) {
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No active periods found for the selected date.</div>';
+            relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron períodos activos para la fecha seleccionada.</div>';
             return;
         }
         
-        // Generate HTML for the periods
+        // Generar HTML para los periodos
         let html = '';
         
-        html += `<div class="alert alert-info">Zodiacal Relay calculated using ${puntoReferencia.replace('_', ' ')} in ${puntoSigno}</div>`;
+        html += `<div class="alert alert-info">Relevo Zodiacal calculado usando ${puntoReferencia.replace('_', ' ')} en ${puntoSigno}</div>`;
         
         periodosActivos.forEach(periodo => {
-            // Get element info for the sign
+            // Obtener información del elemento para el signo
             let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
                 elemento: 'Neutral',
                 color: '#f8f9fa',
-                borde: '#6c757d',
-                className: ''
+                borde: '#6c757d'
             };
             
-            // Determine class for the element
-            let elementoClass = elementoInfo.className || periodo.elemento?.toLowerCase() || 'neutral';
+            // Determinar clase para el elemento
+            let elementoClass = '';
+            if (periodo.signo) {
+                const signoNorm = periodo.signo.toLowerCase();
+                if (['aries', 'leo', 'sagitario'].includes(signoNorm)) {
+                    elementoClass = 'fuego';
+                } else if (['tauro', 'virgo', 'capricornio'].includes(signoNorm)) {
+                    elementoClass = 'tierra';
+                } else if (['geminis', 'libra', 'acuario', 'ofiuco'].includes(signoNorm)) {
+                    elementoClass = 'aire';
+                } else if (['cancer', 'escorpio', 'piscis'].includes(signoNorm)) {
+                    elementoClass = 'agua';
+                }
+            }
             
             html += `
                 <div class="relevo-periodo ${elementoClass}">
                     <h5>${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - ${periodo.regente}</h5>
                     <p>
-                        Period: ${periodo.fechaInicio} - ${periodo.fechaFin}
+                        Período: ${periodo.fechaInicio} - ${periodo.fechaFin}
                         <br>
-                        Age: ${periodo.edad} years
+                        Edad: ${periodo.edad} años
                     </p>
             `;
             
             if (periodo.subperiodos && periodo.subperiodos.length > 0) {
                 periodo.subperiodos.forEach(subp => {
-                    // Get class for subperiod
-                    let subElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subp.signo]] || {
-                        elemento: 'Neutral',
-                        color: '#f8f9fa',
-                        borde: '#6c757d',
-                        className: ''
-                    };
-                    
-                    let subElementoClass = subElementoInfo.className || subp.elemento?.toLowerCase() || 'neutral';
+                    // Obtener clase para subperiodo
+                    let subElementoClass = '';
+                    if (subp.signo) {
+                        const signoNorm = subp.signo.toLowerCase();
+                        if (['aries', 'leo', 'sagitario'].includes(signoNorm)) {
+                            subElementoClass = 'fuego';
+                        } else if (['tauro', 'virgo', 'capricornio'].includes(signoNorm)) {
+                            subElementoClass = 'tierra';
+                        } else if (['geminis', 'libra', 'acuario', 'ofiuco'].includes(signoNorm)) {
+                            subElementoClass = 'aire';
+                        } else if (['cancer', 'escorpio', 'piscis'].includes(signoNorm)) {
+                            subElementoClass = 'agua';
+                        }
+                    }
                     
                     html += `
                         <div class="relevo-subperiodo ${subElementoClass}">
                             <h6>${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - ${subp.regente}</h6>
                             <p>
-                                Subperiod: ${subp.fechaInicio} - ${subp.fechaFin}
+                                Subperíodo: ${subp.fechaInicio} - ${subp.fechaFin}
                                 <br>
-                                Age: ${subp.edad} years
+                                Edad: ${subp.edad} años
                             </p>
                     `;
                     
                     if (subp.subperiodos && subp.subperiodos.length > 0) {
                         subp.subperiodos.forEach(subsubp => {
-                            // Get class for sub-subperiod
-                            let subsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubp.signo]] || {
-                                elemento: 'Neutral',
-                                color: '#f8f9fa',
-                                borde: '#6c757d',
-                                className: ''
-                            };
-                            
-                            let subsubElementoClass = subsubElementoInfo.className || subsubp.elemento?.toLowerCase() || 'neutral';
+                            // Obtener clase para sub-subperiodo
+                            let subsubElementoClass = '';
+                            if (subsubp.signo) {
+                                const signoNorm = subsubp.signo.toLowerCase();
+                                if (['aries', 'leo', 'sagitario'].includes(signoNorm)) {
+                                    subsubElementoClass = 'fuego';
+                                } else if (['tauro', 'virgo', 'capricornio'].includes(signoNorm)) {
+                                    subsubElementoClass = 'tierra';
+                                } else if (['geminis', 'libra', 'acuario', 'ofiuco'].includes(signoNorm)) {
+                                    subsubElementoClass = 'aire';
+                                } else if (['cancer', 'escorpio', 'piscis'].includes(signoNorm)) {
+                                    subsubElementoClass = 'agua';
+                                }
+                            }
                             
                             html += `
                                 <div class="relevo-subsubperiodo ${subsubElementoClass}">
                                     <h6>${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - ${subsubp.regente}</h6>
                                     <p>
-                                        Sub-subperiod: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
+                                        Sub-subperíodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
                                         <br>
-                                        Age: ${subsubp.edad} years
+                                        Edad: ${subsubp.edad} años
                                     </p>
                                 </div>
                             `;
@@ -2560,30 +2603,30 @@ function calcularYMostrarRelevoZodiacal() {
         });
         
         relevoZodiacalContainer.innerHTML = html;
-        console.log("Zodiacal Relay displayed successfully");
+        console.log("Relevo Zodiacal mostrado exitosamente");
         
     } catch (error) {
-        console.error("Error calculating Zodiacal Relay:", error);
-        relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error calculating the Zodiacal Relay: ${error.message}</div>`;
+        console.error("Error calculando Relevo Zodiacal:", error);
+        relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error calculando el Relevo Zodiacal: ${error.message}</div>`;
     }
 }
-
+        
 // Helper function to calculate the Zodiacal Relay
 // Fixed to start from the birth date instead of January 1st
 function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
-    // Convert dates to Date objects
+    // Convertir fechas a objetos Date
     const fechaNac = new Date(birthDate);
     const fechaTransito = new Date(transitDate);
     
-    // Generate sign sequence from the reference point
+    // Generar secuencia de signos a partir del punto de referencia
     const secuencia = generarSecuencia(ascendente);
-    console.log("Generated sign sequence:", secuencia);
+    console.log("Secuencia de signos generada:", secuencia);
     
-    // Active periods for the transit date
+    // Periodos activos para la fecha de tránsito
     const periodosActivos = [];
     let diaActual = 0;
     
-    // Element mapping for signs
+    // Mapeo de elementos para signos
     const elementosSignos = {
         'aries': 'Fuego',
         'leo': 'Fuego',
@@ -2600,7 +2643,7 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
         'piscis': 'Agua'
     };
     
-    // Planetary regents for each sign
+    // Regentes planetarios para cada signo
     const regentesSignos = {
         'aries': 'Marte',
         'tauro': 'Venus',
@@ -2617,26 +2660,26 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
         'piscis': 'Júpiter'
     };
     
-    // For each sign in the sequence, calculate its period
+    // Para cada signo en la secuencia, calcular su periodo
     for (let i = 0; i < secuencia.length; i++) {
         const signo = secuencia[i];
         const anios = DURACION_POR_NIVEL[signo];
         const diasEnPeriodo = anios * DURACIONES.AÑO;
         
-        // Calculate start and end date of the period
-        // Important fix: Start exactly from birth date, not January 1st
+        // Calcular fecha de inicio y fin del periodo
+        // Importante: Iniciar exactamente desde la fecha de nacimiento, no desde el 1 de enero
         const fechaInicio = new Date(fechaNac);
         fechaInicio.setDate(fechaInicio.getDate() + diaActual);
         
         const fechaFin = new Date(fechaInicio);
         fechaFin.setDate(fechaInicio.getDate() + diasEnPeriodo);
         
-        // Check if the transit date is within this period
+        // Comprobar si la fecha de tránsito está dentro de este periodo
         if (fechaTransito >= fechaInicio && fechaTransito <= fechaFin) {
-            // Calculate age for this period
+            // Calcular edad para este periodo
             const edad = calcularEdad(fechaNac, fechaInicio);
             
-            // Create main period object
+            // Crear objeto de periodo principal
             const periodo = {
                 signo: signo,
                 nivel: 1,
@@ -2648,7 +2691,7 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
                 subperiodos: []
             };
             
-            // Calculate subperiods (months)
+            // Calcular subperiodos (meses)
             const subSecuencia = generarSecuencia(signo);
             let diaInicioSub = diaActual;
             
@@ -2657,24 +2700,24 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
                 const meses = DURACION_POR_NIVEL[subSigno];
                 const diasEnSubperiodo = meses * DURACIONES.MES;
                 
-                // Calculate start and end date of the subperiod
+                // Calcular fecha de inicio y fin del subperiodo
                 const fechaInicioSub = new Date(fechaNac);
                 fechaInicioSub.setDate(fechaInicioSub.getDate() + diaInicioSub);
                 
                 const fechaFinSub = new Date(fechaInicioSub);
                 fechaFinSub.setDate(fechaInicioSub.getDate() + diasEnSubperiodo);
                 
-                // Make sure it doesn't exceed the main period end date
+                // Asegurarse de que no exceda la fecha fin del periodo principal
                 if (fechaFinSub > fechaFin) {
                     fechaFinSub.setTime(fechaFin.getTime());
                 }
                 
-                // Check if the transit date is within this subperiod
+                // Comprobar si la fecha de tránsito está dentro de este subperiodo
                 if (fechaTransito >= fechaInicioSub && fechaTransito <= fechaFinSub) {
-                    // Calculate age for this subperiod
+                    // Calcular edad para este subperiodo
                     const edadSub = calcularEdad(fechaNac, fechaInicioSub);
                     
-                    // Create subperiod object
+                    // Crear objeto de subperiodo
                     const subperiodo = {
                         signo: subSigno,
                         nivel: 2,
@@ -2686,7 +2729,7 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
                         subperiodos: []
                     };
                     
-                    // Calculate sub-subperiods (weeks)
+                    // Calcular sub-subperiodos (semanas)
                     const subSubSecuencia = generarSecuencia(subSigno);
                     let diaInicioSubSub = diaInicioSub;
                     
@@ -2695,24 +2738,24 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
                         const semanas = DURACION_POR_NIVEL[subSubSigno];
                         const diasEnSubSubperiodo = semanas * DURACIONES.SEMANA;
                         
-                        // Calculate start and end date of the sub-subperiod
+                        // Calcular fecha de inicio y fin del sub-subperiodo
                         const fechaInicioSubSub = new Date(fechaNac);
                         fechaInicioSubSub.setDate(fechaInicioSubSub.getDate() + diaInicioSubSub);
                         
                         const fechaFinSubSub = new Date(fechaInicioSubSub);
                         fechaFinSubSub.setDate(fechaInicioSubSub.getDate() + diasEnSubSubperiodo);
                         
-                        // Make sure it doesn't exceed the subperiod end date
+                        // Asegurarse de que no exceda la fecha fin del subperiodo
                         if (fechaFinSubSub > fechaFinSub) {
                             fechaFinSubSub.setTime(fechaFinSub.getTime());
                         }
                         
-                        // Check if the transit date is within this sub-subperiod
+                        // Comprobar si la fecha de tránsito está dentro de este sub-subperiodo
                         if (fechaTransito >= fechaInicioSubSub && fechaTransito <= fechaFinSubSub) {
-                            // Calculate age for this sub-subperiod
+                            // Calcular edad para este sub-subperiodo
                             const edadSubSub = calcularEdad(fechaNac, fechaInicioSubSub);
                             
-                            // Create sub-subperiod object
+                            // Crear objeto de sub-subperiodo
                             const subSubperiodo = {
                                 signo: subSubSigno,
                                 nivel: 3,
@@ -2723,39 +2766,39 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
                                 elemento: elementosSignos[subSubSigno] || 'Neutral'
                             };
                             
-                            // Add sub-subperiod to the subperiod
+                            // Añadir sub-subperiodo al subperiodo
                             subperiodo.subperiodos.push(subSubperiodo);
                         }
                         
-                        // Advance the start day for the next sub-subperiod
+                        // Avanzar el día de inicio para el siguiente sub-subperiodo
                         diaInicioSubSub += diasEnSubSubperiodo;
                         
-                        // If we've passed the end of the subperiod, exit the loop
+                        // Si hemos sobrepasado el fin del subperiodo, salir del bucle
                         if (diaInicioSubSub >= diaInicioSub + diasEnSubperiodo || 
                             new Date(fechaNac.getTime() + diaInicioSubSub * 24 * 60 * 60 * 1000) > fechaFinSub) {
                             break;
                         }
                     }
                     
-                    // Add subperiod to the main period
+                    // Añadir subperiodo al periodo principal
                     periodo.subperiodos.push(subperiodo);
                 }
                 
-                // Advance the start day for the next subperiod
+                // Avanzar el día de inicio para el siguiente subperiodo
                 diaInicioSub += diasEnSubperiodo;
                 
-                // If we've passed the end of the main period, exit the loop
+                // Si hemos sobrepasado el fin del periodo principal, salir del bucle
                 if (diaInicioSub >= diaActual + diasEnPeriodo || 
                     new Date(fechaNac.getTime() + diaInicioSub * 24 * 60 * 60 * 1000) > fechaFin) {
                     break;
                 }
             }
             
-            // Add the period to the list of active periods
+            // Añadir el periodo a la lista de periodos activos
             periodosActivos.push(periodo);
         }
         
-        // Advance to the next main period
+        // Avanzar al siguiente periodo principal
         diaActual += diasEnPeriodo;
     }
     
@@ -2954,23 +2997,62 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
     return periodosActivos;
 }
 
-// Also add event listeners for the radio buttons to recalculate when changed
+// Añadir esta función a tu archivo JavaScript existente
 function setupRelevoZodiacalListeners() {
-    // Get all radio buttons for relevo zodiacal reference points
+    // Obtener todos los botones de radio para puntos de referencia del Relevo Zodiacal
     const radioButtons = document.querySelectorAll('input[name="puntoReferenciaRelevo"]');
     
-    // Add event listener to each radio button
+    // Añadir event listener a cada botón de radio
     radioButtons.forEach(radio => {
         radio.addEventListener('change', () => {
-            // Recalculate Relevo Zodiacal when the reference point changes
+            // Recalcular Relevo Zodiacal cuando cambia el punto de referencia
             calcularYMostrarRelevoZodiacal();
         });
     });
+    
+    // Añadir event listener al botón principal de cálculo
+    const calculateBtn = document.getElementById('calculateBtn');
+    if (calculateBtn) {
+        const originalClickHandler = calculateBtn.onclick;
+        
+        calculateBtn.onclick = function() {
+            // Llamar al manejador original si existe
+            if (typeof originalClickHandler === 'function') {
+                originalClickHandler.call(this);
+            } else {
+                // Si no hay manejador original, llamar a la función de cálculo directamente
+                calculateChart();
+            }
+            
+            // Esperar a que la carta se cargue (usando setTimeout)
+            setTimeout(() => {
+                calcularYMostrarRelevoZodiacal();
+            }, 1000);
+        };
+    }
+    
+    // Añadir event listeners a los campos de fecha y tiempo de tránsito
+    const transitDateInput = document.getElementById('transitDate');
+    const transitTimeInput = document.getElementById('transitTime');
+    
+    if (transitDateInput) {
+        transitDateInput.addEventListener('change', debounce(() => {
+            if (document.getElementById('chartContent').style.display !== 'none') {
+                calcularYMostrarRelevoZodiacal();
+            }
+        }, 500));
+    }
+    
+    if (transitTimeInput) {
+        transitTimeInput.addEventListener('change', debounce(() => {
+            if (document.getElementById('chartContent').style.display !== 'none') {
+                calcularYMostrarRelevoZodiacal();
+            }
+        }, 500));
+    }
+    
+    console.log("Event listeners configurados para Relevo Zodiacal");
 }
-
-// Make sure to call the setup function during initialization
-// Add this line to the init() function
-// setupRelevoZodiacalListeners();
         
 // Nueva función para generar HTML de periodos
 function generarHTMLPeriodos(periodos) {
@@ -3342,46 +3424,31 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
         window.calcularYMostrarRelevoZodiacal = calcularYMostrarRelevoZodiacal;
 
         // Inicialización
-        function init() {
-            console.log("Inicializando aplicación...");
+        // Modificar la función init para incluir la configuración de los listeners
+function initRelevo() {
+    // Verificar si ya existe la función init
+    const originalInit = window.init;
+    
+    if (typeof originalInit === 'function') {
+        // Reemplazar la función init original
+        window.init = function() {
+            // Llamar a la función init original
+            originalInit.call(this);
             
-            // Establecer fecha y hora actuales
-            const now = new Date();
-            dateInput.value = now.toISOString().split('T')[0];
-            timeInput.value = now.toTimeString().slice(0, 5);
-            
-            transitDateInput.value = now.toISOString().split('T')[0];
-            transitTimeInput.value = now.toTimeString().slice(0, 5);
-            
-            // Establecer ciudad predeterminada
-            cityInput.value = "Bilbao, España";
-            transitCityInput.value = "Bilbao, España";
-            
-            // Event listeners para búsqueda de ciudades
-            cityInput.addEventListener('input', debounce(function() {
-                handleCitySearch(cityInput.value, false);
-            }, 300));
-            
-            transitCityInput.addEventListener('input', debounce(function() {
-                handleCitySearch(transitCityInput.value, true);
-            }, 300));
-            
-            // Event listeners para toggles y botones
-            showTransitsToggle.addEventListener('change', toggleTransits);
-            calculateBtn.addEventListener('click', calculateChart);
-            
-            // Event listeners para filtros de predicciones
-            yearFilterSelect.addEventListener('change', renderPredictions);
-            tipoPrediccionSelect.addEventListener('change', renderPredictions);
-            
-            // Configurar inicialmente los controles de tránsitos
-            toggleTransits();
-            
-            // Ocultar loading
-            loadingIndicator.style.display = 'none';
+            // Llamar a nuestra función de configuración
+            setupRelevoZodiacalListeners();
+        };
+    } else {
+        console.warn("No se encontró la función init original");
+        
+        // Configurar nuestros listeners directamente
+        document.addEventListener('DOMContentLoaded', setupRelevoZodiacalListeners);
+    }
+}
 
-            // Add this to the init() function at the end, just before the line "console.log("Aplicación inicializada correctamente");"
-
+// Ejecutar la función de inicialización de Relevo
+initRelevo();
+        
 // Set up event listeners for Relevo Zodiacal radio buttons
 const radioButtons = document.querySelectorAll('input[name="puntoReferenciaRelevo"]');
 radioButtons.forEach(radio => {
