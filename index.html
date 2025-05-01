@@ -3423,74 +3423,92 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
         window.seleccionarPuntoReferencia = seleccionarPuntoReferencia;
         window.calcularYMostrarRelevoZodiacal = calcularYMostrarRelevoZodiacal;
 
-        // Inicialización
-        // Modificar la función init para incluir la configuración de los listeners
         function init() {
-            console.log("Inicializando aplicación...");
-            
-            // Establecer fecha y hora actuales
-            const now = new Date();
-            dateInput.value = now.toISOString().split('T')[0];
-            timeInput.value = now.toTimeString().slice(0, 5);
-            
-            transitDateInput.value = now.toISOString().split('T')[0];
-            transitTimeInput.value = now.toTimeString().slice(0, 5);
-            
-            // Establecer ciudad predeterminada
-            cityInput.value = "Bilbao, España";
-            transitCityInput.value = "Bilbao, España";
-            
-            // Event listeners para búsqueda de ciudades
-            cityInput.addEventListener('input', debounce(function() {
-                handleCitySearch(cityInput.value, false);
-            }, 300));
-            
-            transitCityInput.addEventListener('input', debounce(function() {
-                handleCitySearch(transitCityInput.value, true);
-            }, 300));
-            
-            // Event listeners para toggles y botones
-            showTransitsToggle.addEventListener('change', toggleTransits);
-            calculateBtn.addEventListener('click', calculateChart);
-            
-            // Event listeners para filtros de predicciones
-            yearFilterSelect.addEventListener('change', renderPredictions);
-            tipoPrediccionSelect.addEventListener('change', renderPredictions);
-            
-            // Configurar inicialmente los controles de tránsitos
-            toggleTransits();
-            
-            // Ocultar loading
-            loadingIndicator.style.display = 'none';
-            
-            console.log("Aplicación inicializada correctamente");
-        }
-
-        // Modificar la función init para incluir la configuración de los listeners
-function initRelevo() {
-    // Verificar si ya existe la función init
-    const originalInit = window.init;
+    console.log("Inicializando aplicación...");
     
-    if (typeof originalInit === 'function') {
-        // Reemplazar la función init original
-        window.init = function() {
-            // Llamar a la función init original
-            originalInit.call(this);
-            
-            // Llamar a nuestra función de configuración
-            setupRelevoZodiacalListeners();
-        };
-    } else {
-        console.warn("No se encontró la función init original");
+    // Establecer fecha y hora actuales
+    const now = new Date();
+    dateInput.value = now.toISOString().split('T')[0];
+    timeInput.value = now.toTimeString().slice(0, 5);
+    
+    transitDateInput.value = now.toISOString().split('T')[0];
+    transitTimeInput.value = now.toTimeString().slice(0, 5);
+    
+    // Establecer ciudad predeterminada
+    cityInput.value = "Bilbao, España";
+    transitCityInput.value = "Bilbao, España";
+    
+    // Event listeners para búsqueda de ciudades
+    cityInput.addEventListener('input', debounce(function() {
+        handleCitySearch(cityInput.value, false);
+    }, 300));
+    
+    transitCityInput.addEventListener('input', debounce(function() {
+        handleCitySearch(transitCityInput.value, true);
+    }, 300));
+    
+    // Event listeners para toggles y botones
+    showTransitsToggle.addEventListener('change', toggleTransits);
+    calculateBtn.addEventListener('click', function() {
+        calculateChart();
         
-        // Configurar nuestros listeners directamente
-        document.addEventListener('DOMContentLoaded', setupRelevoZodiacalListeners);
-    }
-}
-        
-        // Inicializar la aplicación cuando el DOM esté listo
-        init();
+        // Esperar a que la carta se cargue y luego calcular el Relevo Zodiacal
+        setTimeout(() => {
+            calcularYMostrarRelevoZodiacal();
+        }, 1000);
     });
+    
+    // Event listeners para filtros de predicciones
+    yearFilterSelect.addEventListener('change', renderPredictions);
+    tipoPrediccionSelect.addEventListener('change', renderPredictions);
+    
+    // Configurar inicialmente los controles de tránsitos
+    toggleTransits();
+    
+    // Ocultar loading
+    loadingIndicator.style.display = 'none';
+
+    // Configurar event listeners para Relevo Zodiacal
+    setupRelevoZodiacalListeners();
+    
+    console.log("Aplicación inicializada correctamente");
+}
+
+// Función para configurar los event listeners del Relevo Zodiacal
+function setupRelevoZodiacalListeners() {
+    // Obtener todos los botones de radio para puntos de referencia del Relevo Zodiacal
+    const radioButtons = document.querySelectorAll('input[name="puntoReferenciaRelevo"]');
+    
+    // Añadir event listener a cada botón de radio
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', () => {
+            // Recalcular Relevo Zodiacal cuando cambia el punto de referencia
+            calcularYMostrarRelevoZodiacal();
+        });
+    });
+    
+    // Añadir event listeners a los campos de fecha y tiempo de tránsito para actualizar el Relevo
+    const transitDateInput = document.getElementById('transitDate');
+    const transitTimeInput = document.getElementById('transitTime');
+    
+    if (transitDateInput) {
+        transitDateInput.addEventListener('change', debounce(() => {
+            if (document.getElementById('chartContent').style.display !== 'none') {
+                calcularYMostrarRelevoZodiacal();
+            }
+        }, 500));
+    }
+    
+    if (transitTimeInput) {
+        transitTimeInput.addEventListener('change', debounce(() => {
+            if (document.getElementById('chartContent').style.display !== 'none') {
+                calcularYMostrarRelevoZodiacal();
+            }
+        }, 500));
+    }
+    
+    console.log("Event listeners configurados para Relevo Zodiacal");
+}
     </script>
 </body>
 </html>
