@@ -410,12 +410,6 @@
                         <label class="form-check-label" for="calculateAnalysis">Análisis Avanzado</label>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="calculatePredictions">
-                        <label class="form-check-label" for="calculatePredictions">Calcular Predicciones (84 años)</label>
-                    </div>
-                </div>
             </div>
 
             <div id="transitsContainer">
@@ -464,20 +458,7 @@
                 </div>
                 
                 <!-- Sección de Predicciones -->
-                <div class="predicciones-container d-none" id="prediccionesContainer">
-                    <h3>Predicciones a Largo Plazo (84 años)</h3>
-                    
-                    <!-- Botones de puntos de referencia -->
-                    <div class="mb-3" id="puntosReferenciaContainer">
-                        <h5>Punto de referencia para liberaciones:</h5>
-                        <div class="d-flex flex-wrap" id="puntosReferenciaBtns">
-                            <!-- Los botones se generarán dinámicamente -->
-                        </div>
-                        <div class="punto-info" id="puntoInfo">
-                            Selecciona un punto de referencia para ver la información.
-                        </div>
-                    </div>
-                    
+                <div class="predicciones-container d-none" id="prediccionesContainer">                    
                     <div class="date-filter mb-3">
                         <div class="row">
                             <div class="col-md-6">
@@ -987,166 +968,162 @@
             return { lat: 40.416, lon: -3.703 };
         }
 
-        // Función para calcular la carta astral - ACTUALIZADA para incluir coordenadas
-        function calculateChart() {
-            // Validar entradas
-            if (!cityInput.value || !dateInput.value || !timeInput.value) {
-                showError("Debes ingresar ciudad, fecha y hora para la carta natal.");
-                return;
-            }
+        // Modified calculateChart function to remove predictions calculation
+function calculateChart() {
+    // Validate inputs
+    if (!cityInput.value || !dateInput.value || !timeInput.value) {
+        showError("Debes ingresar ciudad, fecha y hora para la carta natal.");
+        return;
+    }
+    
+    if (showTransitsToggle.checked && (!transitCityInput.value || !transitDateInput.value || !transitTimeInput.value)) {
+        showError("Debes ingresar ciudad, fecha y hora para los tránsitos.");
+        return;
+    }
+    
+    // Show loading
+    loadingIndicator.style.display = 'flex';
+    hideError();
+    
+    // Get coordinates of the selected city
+    const natalCoords = getSelectedCityCoordinates(cityInput, cityList);
+    
+    console.log("Calculando carta astral...");
+    console.log("Datos natal:", {
+        city: cityInput.value,
+        date: dateInput.value,
+        time: timeInput.value,
+        lat: natalCoords.lat,
+        lon: natalCoords.lon
+    });
+    
+    // Save birth date for later use
+    birthDate = dateInput.value;
+    window.birthDate = birthDate;
+    
+    // Calculate natal chart - Include coordinates in the request
+    const natalData = {
+        city: cityInput.value,
+        date: dateInput.value,
+        time: timeInput.value,
+        lat: natalCoords.lat,
+        lon: natalCoords.lon,
+        calculateAnalysis: calculateAnalysisToggle.checked
+    };
+    
+    fetch('/calculate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(natalData)
+    })
+    .then(response => {
+        console.log("Respuesta recibida:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Datos de la carta natal:", data);
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Save basic data
+        natalPlanets = data.positions;
+        window.natalPlanets = natalPlanets;
+        internalAspects = data.aspects;
+        
+        // Save advanced analysis results if available
+        if (data.enlaces) enlaces = data.enlaces;
+        if (data.pico_mayor) window.pico_mayor = data.pico_mayor;
+        if (data.pico_moderado) window.pico_moderado = data.pico_moderado;
+        if (data.pico_menor) window.pico_menor = data.pico_menor;
+        if (data.liberacion_enlace) window.liberacion_enlace = data.liberacion_enlace;
+        if (data.presagios) window.presagios = data.presagios;
+        
+        isDry = data.isDry;
+        window.isDry = isDry;
+        
+        // Show ascendant information
+        const ascPlanet = natalPlanets.find(p => p.name === 'ASC');
+        if (ascPlanet) {
+            ascendenteName = ascPlanet.sign;
+            window.ascendenteName = ascendenteName;
+            showBirthInfo(ascPlanet.sign, isDry);
+        }
+        
+        // If there are transits, calculate them as well
+        if (showTransitsToggle.checked) {
+            console.log("Calculando tránsitos...");
             
-            if (showTransitsToggle.checked && (!transitCityInput.value || !transitDateInput.value || !transitTimeInput.value)) {
-                showError("Debes ingresar ciudad, fecha y hora para los tránsitos.");
-                return;
-            }
+            // Get coordinates of the transit city
+            const transitCoords = getSelectedCityCoordinates(transitCityInput, transitCityList);
             
-            // Mostrar loading
-            loadingIndicator.style.display = 'flex';
-            hideError();
-            
-            // Obtener coordenadas de la ciudad seleccionada
-            const natalCoords = getSelectedCityCoordinates(cityInput, cityList);
-            
-            console.log("Calculando carta astral...");
-            console.log("Datos natal:", {
-                city: cityInput.value,
-                date: dateInput.value,
-                time: timeInput.value,
-                lat: natalCoords.lat,
-                lon: natalCoords.lon
+            console.log("Datos tránsito:", {
+                city: transitCityInput.value,
+                date: transitDateInput.value,
+                time: transitTimeInput.value,
+                lat: transitCoords.lat,
+                lon: transitCoords.lon
             });
-            
-            // Guardar fecha de nacimiento para uso posterior
-            birthDate = dateInput.value;
-            window.birthDate = birthDate;
-            
-            // Calcular carta natal - Incluir coordenadas en la solicitud
-            const natalData = {
-                city: cityInput.value,
-                date: dateInput.value,
-                time: timeInput.value,
-                lat: natalCoords.lat,
-                lon: natalCoords.lon,
-                calculateAnalysis: calculateAnalysisToggle.checked
-            };
             
             fetch('/calculate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(natalData)
+                body: JSON.stringify({
+                    city: transitCityInput.value,
+                    date: transitDateInput.value,
+                    time: transitTimeInput.value,
+                    lat: transitCoords.lat,
+                    lon: transitCoords.lon,
+                    calculateAnalysis: calculateAnalysisToggle.checked
+                })
             })
-            .then(response => {
-                console.log("Respuesta recibida:", response.status);
-                return response.json();
+            .then(transitResponse => {
+                console.log("Respuesta de tránsitos recibida:", transitResponse.status);
+                return transitResponse.json();
             })
-            .then(data => {
-                console.log("Datos de la carta natal:", data);
+            .then(transitData => {
+                console.log("Datos de tránsitos:", transitData);
                 
-                if (data.error) {
-                    throw new Error(data.error);
+                if (transitData.error) {
+                    throw new Error(transitData.error);
                 }
                 
-                // Guardar datos básicos
-                natalPlanets = data.positions;
-                window.natalPlanets = natalPlanets;
-                internalAspects = data.aspects;
+                transitPlanets = transitData.positions;
                 
-                // Guardar resultados de análisis avanzado si están disponibles
-                if (data.enlaces) enlaces = data.enlaces;
-                if (data.pico_mayor) window.pico_mayor = data.pico_mayor;
-                if (data.pico_moderado) window.pico_moderado = data.pico_moderado;
-                if (data.pico_menor) window.pico_menor = data.pico_menor;
-                if (data.liberacion_enlace) window.liberacion_enlace = data.liberacion_enlace;
-                if (data.presagios) window.presagios = data.presagios;
+                // Calculate aspects between charts
+                interChartAspects = calculateAspects(natalPlanets, transitPlanets);
                 
-                isDry = data.isDry;
-                window.isDry = isDry;
-                
-                // Mostrar información del ascendente
-                const ascPlanet = natalPlanets.find(p => p.name === 'ASC');
-                if (ascPlanet) {
-                    ascendenteName = ascPlanet.sign;
-                    window.ascendenteName = ascendenteName;
-                    showBirthInfo(ascPlanet.sign, isDry);
-                }
-                
-                // Si hay tránsitos, calcularlos también
-                if (showTransitsToggle.checked) {
-                    console.log("Calculando tránsitos...");
-                    
-                    // Obtener coordenadas de la ciudad de tránsito
-                    const transitCoords = getSelectedCityCoordinates(transitCityInput, transitCityList);
-                    
-                    console.log("Datos tránsito:", {
-                        city: transitCityInput.value,
-                        date: transitDateInput.value,
-                        time: transitTimeInput.value,
-                        lat: transitCoords.lat,
-                        lon: transitCoords.lon
-                    });
-                    
-                    fetch('/calculate', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            city: transitCityInput.value,
-                            date: transitDateInput.value,
-                            time: transitTimeInput.value,
-                            lat: transitCoords.lat,
-                            lon: transitCoords.lon,
-                            calculateAnalysis: calculateAnalysisToggle.checked
-                        })
-                    })
-                    .then(transitResponse => {
-                        console.log("Respuesta de tránsitos recibida:", transitResponse.status);
-                        return transitResponse.json();
-                    })
-                    .then(transitData => {
-                        console.log("Datos de tránsitos:", transitData);
-                        
-                        if (transitData.error) {
-                            throw new Error(transitData.error);
-                        }
-                        
-                        transitPlanets = transitData.positions;
-                        
-                        // Calcular aspectos entre cartas
-                        interChartAspects = calculateAspects(natalPlanets, transitPlanets);
-                        
-                        // Renderizar carta completa
-                        renderChart();
-                        
-                        // Calcular predicciones si está activado
-                        if (calculatePredictionsToggle.checked) {
-                            calculatePredictions();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error calculando tránsitos:', error);
-                        showError("Error calculando tránsitos: " + error.message);
-                        loadingIndicator.style.display = 'none';
-                    });
-                } else {
-                    transitPlanets = [];
-                    interChartAspects = [];
-                    renderChart();
-                    
-                    // Calcular predicciones si está activado
-                    if (calculatePredictionsToggle.checked) {
-                        calculatePredictions();
-                    }
-                }
+                // Render full chart
+                renderChart();
+
+                // Calculate zodiacal relay (new automatic function)
+                calcularYMostrarRelevoZodiacal();
             })
             .catch(error => {
-                console.error('Error calculando carta:', error);
-                showError("Error calculando carta: " + error.message);
+                console.error('Error calculando tránsitos:', error);
+                showError("Error calculando tránsitos: " + error.message);
                 loadingIndicator.style.display = 'none';
             });
+        } else {
+            transitPlanets = [];
+            interChartAspects = [];
+            renderChart();
+            
+            // Calculate zodiacal relay (new automatic function)
+            calcularYMostrarRelevoZodiacal();
         }
+    })
+    .catch(error => {
+        console.error('Error calculando carta:', error);
+        showError("Error calculando carta: " + error.message);
+        loadingIndicator.style.display = 'none';
+    });
+}
 
         // Función para calcular predicciones a largo plazo - ACTUALIZADA
         function calculatePredictions() {
@@ -1613,38 +1590,38 @@
             return aspects;
         }
 
-        // Función para renderizar la carta astral
-        function renderChart() {
-            console.log("Renderizando carta astral...");
-            
-            // Limpiar SVG
-            chartSvg.innerHTML = '';
-            
-            // Dibujar elementos
-            drawZodiacWheel();
-            drawAspects();
-            drawPlanets(natalPlanets, true);
-            
-            if (showTransitsToggle.checked && transitPlanets.length > 0) {
-                drawPlanets(transitPlanets, false);
-            }
-            
-            // Actualizar listas de información
-            updatePlanetsList();
-            updateAspectsList();
-            updateAdvancedInfo();
-            
-            // Mostrar la carta
-            chartContent.style.display = 'flex';
-            
-            // Ocultar loading
-            loadingIndicator.style.display = 'none';
+        // Modified renderChart function to include Relevo Zodiacal calculation
+function renderChart() {
+    console.log("Renderizando carta astral...");
+    
+    // Clear SVG
+    chartSvg.innerHTML = '';
+    
+    // Draw elements
+    drawZodiacWheel();
+    drawAspects();
+    drawPlanets(natalPlanets, true);
+    
+    if (showTransitsToggle.checked && transitPlanets.length > 0) {
+        drawPlanets(transitPlanets, false);
+    }
+    
+    // Update information lists
+    updatePlanetsList();
+    updateAspectsList();
+    updateAdvancedInfo();
+    
+    // Show the chart
+    chartContent.style.display = 'flex';
+    
+    // Hide loading
+    loadingIndicator.style.display = 'none';
 
-            // Añadir esta línea antes de "console.log("Carta astral renderizada");"
-            calcularYMostrarRelevoZodiacal();
-            
-            console.log("Carta astral renderizada");
-        }
+    // Calculate and display Relevo Zodiacal automatically
+    calcularYMostrarRelevoZodiacal();
+    
+    console.log("Carta astral renderizada");
+}
 
         // Función para dibujar la rueda zodiacal
         function drawZodiacWheel() {
@@ -2373,7 +2350,7 @@
 
 // Improved implementation of the Relevo Zodiacal functionality
 
-// This function calculates and displays the Zodiacal Relay based on the selected reference point
+// Fixed function to calculate and display Zodiacal Relay
 function calcularYMostrarRelevoZodiacal() {
     console.log("Calculating and displaying Zodiacal Relay with selected reference point");
     
@@ -2403,7 +2380,15 @@ function calcularYMostrarRelevoZodiacal() {
     }
     
     // Get the selected reference point from radio buttons
-    const puntoReferencia = document.querySelector('input[name="puntoReferenciaRelevo"]:checked').value;
+    const puntoReferenciaElements = document.getElementsByName("puntoReferenciaRelevo");
+    let puntoReferencia = "ASC"; // Default to ASC
+    
+    for (const radio of puntoReferenciaElements) {
+        if (radio.checked) {
+            puntoReferencia = radio.value;
+            break;
+        }
+    }
     
     // Find the sign of the selected reference point
     let puntoSigno = null;
@@ -2519,6 +2504,200 @@ function calcularYMostrarRelevoZodiacal() {
     }
 }
 
+// Helper function to calculate the Zodiacal Relay
+// Fixed to start from the birth date instead of January 1st
+function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
+    // Convert dates to Date objects
+    const fechaNac = new Date(birthDate);
+    const fechaTransito = new Date(transitDate);
+    
+    // Generate sign sequence from the reference point
+    const secuencia = generarSecuencia(ascendente);
+    console.log("Generated sign sequence:", secuencia);
+    
+    // Active periods for the transit date
+    const periodosActivos = [];
+    let diaActual = 0;
+    
+    // Element mapping for signs
+    const elementosSignos = {
+        'aries': 'Fuego',
+        'leo': 'Fuego',
+        'sagitario': 'Fuego',
+        'tauro': 'Tierra',
+        'virgo': 'Tierra',
+        'capricornio': 'Tierra',
+        'geminis': 'Aire',
+        'libra': 'Aire',
+        'acuario': 'Aire',
+        'ofiuco': 'Aire',
+        'cancer': 'Agua',
+        'escorpio': 'Agua',
+        'piscis': 'Agua'
+    };
+    
+    // Planetary regents for each sign
+    const regentesSignos = {
+        'aries': 'Marte',
+        'tauro': 'Venus',
+        'geminis': 'Mercurio',
+        'cancer': 'Luna',
+        'leo': 'Sol',
+        'virgo': 'Mercurio',
+        'libra': 'Venus',
+        'escorpio': 'Marte',
+        'ofiuco': 'Saturno',
+        'sagitario': 'Júpiter',
+        'capricornio': 'Sol',
+        'acuario': 'Luna',
+        'piscis': 'Júpiter'
+    };
+    
+    // For each sign in the sequence, calculate its period
+    for (let i = 0; i < secuencia.length; i++) {
+        const signo = secuencia[i];
+        const anios = DURACION_POR_NIVEL[signo];
+        const diasEnPeriodo = anios * DURACIONES.AÑO;
+        
+        // Calculate start and end date of the period
+        // Important fix: Start exactly from birth date, not January 1st
+        const fechaInicio = new Date(fechaNac);
+        fechaInicio.setDate(fechaInicio.getDate() + diaActual);
+        
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaInicio.getDate() + diasEnPeriodo);
+        
+        // Check if the transit date is within this period
+        if (fechaTransito >= fechaInicio && fechaTransito <= fechaFin) {
+            // Calculate age for this period
+            const edad = calcularEdad(fechaNac, fechaInicio);
+            
+            // Create main period object
+            const periodo = {
+                signo: signo,
+                nivel: 1,
+                fechaInicio: fechaInicio.toLocaleDateString('es-ES'),
+                fechaFin: fechaFin.toLocaleDateString('es-ES'),
+                edad: edad,
+                regente: regentesSignos[signo] || 'Desconocido',
+                elemento: elementosSignos[signo] || 'Neutral',
+                subperiodos: []
+            };
+            
+            // Calculate subperiods (months)
+            const subSecuencia = generarSecuencia(signo);
+            let diaInicioSub = diaActual;
+            
+            for (let j = 0; j < subSecuencia.length; j++) {
+                const subSigno = subSecuencia[j];
+                const meses = DURACION_POR_NIVEL[subSigno];
+                const diasEnSubperiodo = meses * DURACIONES.MES;
+                
+                // Calculate start and end date of the subperiod
+                const fechaInicioSub = new Date(fechaNac);
+                fechaInicioSub.setDate(fechaInicioSub.getDate() + diaInicioSub);
+                
+                const fechaFinSub = new Date(fechaInicioSub);
+                fechaFinSub.setDate(fechaInicioSub.getDate() + diasEnSubperiodo);
+                
+                // Make sure it doesn't exceed the main period end date
+                if (fechaFinSub > fechaFin) {
+                    fechaFinSub.setTime(fechaFin.getTime());
+                }
+                
+                // Check if the transit date is within this subperiod
+                if (fechaTransito >= fechaInicioSub && fechaTransito <= fechaFinSub) {
+                    // Calculate age for this subperiod
+                    const edadSub = calcularEdad(fechaNac, fechaInicioSub);
+                    
+                    // Create subperiod object
+                    const subperiodo = {
+                        signo: subSigno,
+                        nivel: 2,
+                        fechaInicio: fechaInicioSub.toLocaleDateString('es-ES'),
+                        fechaFin: fechaFinSub.toLocaleDateString('es-ES'),
+                        edad: edadSub,
+                        regente: regentesSignos[subSigno] || 'Desconocido',
+                        elemento: elementosSignos[subSigno] || 'Neutral',
+                        subperiodos: []
+                    };
+                    
+                    // Calculate sub-subperiods (weeks)
+                    const subSubSecuencia = generarSecuencia(subSigno);
+                    let diaInicioSubSub = diaInicioSub;
+                    
+                    for (let k = 0; k < subSubSecuencia.length; k++) {
+                        const subSubSigno = subSubSecuencia[k];
+                        const semanas = DURACION_POR_NIVEL[subSubSigno];
+                        const diasEnSubSubperiodo = semanas * DURACIONES.SEMANA;
+                        
+                        // Calculate start and end date of the sub-subperiod
+                        const fechaInicioSubSub = new Date(fechaNac);
+                        fechaInicioSubSub.setDate(fechaInicioSubSub.getDate() + diaInicioSubSub);
+                        
+                        const fechaFinSubSub = new Date(fechaInicioSubSub);
+                        fechaFinSubSub.setDate(fechaInicioSubSub.getDate() + diasEnSubSubperiodo);
+                        
+                        // Make sure it doesn't exceed the subperiod end date
+                        if (fechaFinSubSub > fechaFinSub) {
+                            fechaFinSubSub.setTime(fechaFinSub.getTime());
+                        }
+                        
+                        // Check if the transit date is within this sub-subperiod
+                        if (fechaTransito >= fechaInicioSubSub && fechaTransito <= fechaFinSubSub) {
+                            // Calculate age for this sub-subperiod
+                            const edadSubSub = calcularEdad(fechaNac, fechaInicioSubSub);
+                            
+                            // Create sub-subperiod object
+                            const subSubperiodo = {
+                                signo: subSubSigno,
+                                nivel: 3,
+                                fechaInicio: fechaInicioSubSub.toLocaleDateString('es-ES'),
+                                fechaFin: fechaFinSubSub.toLocaleDateString('es-ES'),
+                                edad: edadSubSub,
+                                regente: regentesSignos[subSubSigno] || 'Desconocido',
+                                elemento: elementosSignos[subSubSigno] || 'Neutral'
+                            };
+                            
+                            // Add sub-subperiod to the subperiod
+                            subperiodo.subperiodos.push(subSubperiodo);
+                        }
+                        
+                        // Advance the start day for the next sub-subperiod
+                        diaInicioSubSub += diasEnSubSubperiodo;
+                        
+                        // If we've passed the end of the subperiod, exit the loop
+                        if (diaInicioSubSub >= diaInicioSub + diasEnSubperiodo || 
+                            new Date(fechaNac.getTime() + diaInicioSubSub * 24 * 60 * 60 * 1000) > fechaFinSub) {
+                            break;
+                        }
+                    }
+                    
+                    // Add subperiod to the main period
+                    periodo.subperiodos.push(subperiodo);
+                }
+                
+                // Advance the start day for the next subperiod
+                diaInicioSub += diasEnSubperiodo;
+                
+                // If we've passed the end of the main period, exit the loop
+                if (diaInicioSub >= diaActual + diasEnPeriodo || 
+                    new Date(fechaNac.getTime() + diaInicioSub * 24 * 60 * 60 * 1000) > fechaFin) {
+                    break;
+                }
+            }
+            
+            // Add the period to the list of active periods
+            periodosActivos.push(periodo);
+        }
+        
+        // Advance to the next main period
+        diaActual += diasEnPeriodo;
+    }
+    
+    return periodosActivos;
+}
+        
 // Helper function to calculate the Zodiacal Relay
 function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
     // Convert dates to Date objects
