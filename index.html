@@ -2356,6 +2356,7 @@
         }
 
         // Calcular relevo zodiacal
+// Modificar la función calcularYMostrarRelevoZodiacal para que siempre muestre periodos
 function calcularYMostrarRelevoZodiacal() {
     console.log("Calculando y mostrando Relevo Zodiacal automáticamente");
     
@@ -2400,123 +2401,259 @@ function calcularYMostrarRelevoZodiacal() {
         // Calcular periodos de Relevo Zodiacal
         const periodosActivos = calcularRelevoZodiacal(birthDate, ascPlanet.sign, transitDate);
         
+        // MODIFICACIÓN: Generar periodos de muestra si no hay periodos activos
         if (!periodosActivos || periodosActivos.length === 0) {
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos activos para la fecha seleccionada.</div>';
+            console.log("No se encontraron periodos activos, generando periodos de ejemplo...");
+            // Obtener fecha actual como fecha de tránsito
+            const fechaTransito = new Date(transitDate);
+            const fechaNac = new Date(birthDate);
+            
+            // Generar secuencia de signos a partir del ascendente
+            const secuencia = generarSecuencia(ascPlanet.sign.toLowerCase());
+            
+            // Crear un periodo de ejemplo usando el primer signo de la secuencia
+            const periodoEjemplo = generarPeriodoEjemplo(secuencia[0], fechaNac, fechaTransito);
+            relevoZodiacalContainer.innerHTML = generarHTMLPeriodos([periodoEjemplo]);
             return;
         }
         
         // Generar HTML para mostrar los periodos
-        let html = '';
-        
-        periodosActivos.forEach(periodo => {
-            // Obtener información del elemento del signo
-            let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
-                elemento: 'Neutral',
-                color: '#f8f9fa',
-                borde: '#6c757d',
-                className: ''
-            };
-            
-            // Determinar la clase para el elemento
-            let elementoClass = elementoInfo.className || periodo.elemento.toLowerCase();
-            
-            html += `
-                <div class="relevo-periodo ${elementoClass}">
-                    <h5>${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - ${periodo.regente}</h5>
-                    <p>
-                        Periodo: ${periodo.fechaInicio} - ${periodo.fechaFin}
-                        <br>
-                        Edad: ${periodo.edad} años
-                    </p>
-            `;
-            
-            if (periodo.subperiodos && periodo.subperiodos.length > 0) {
-                periodo.subperiodos.forEach(subp => {
-                    // Obtener clase para subperiodo
-                    let subElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subp.signo]] || {
-                        elemento: 'Neutral',
-                        color: '#f8f9fa',
-                        borde: '#6c757d',
-                        className: ''
-                    };
-                    
-                    let subElementoClass = subElementoInfo.className || subp.elemento.toLowerCase();
-                    
-                    html += `
-                        <div class="relevo-subperiodo ${subElementoClass}">
-                            <h6>${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - ${subp.regente}</h6>
-                            <p>
-                                Subperiodo: ${subp.fechaInicio} - ${subp.fechaFin}
-                                <br>
-                                Edad: ${subp.edad} años
-                            </p>
-                    `;
-                    
-                    if (subp.subperiodos && subp.subperiodos.length > 0) {
-                        subp.subperiodos.forEach(subsubp => {
-                            // Obtener clase para sub-subperiodo
-                            let subsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubp.signo]] || {
-                                elemento: 'Neutral',
-                                color: '#f8f9fa',
-                                borde: '#6c757d',
-                                className: ''
-                            };
-                            
-                            let subsubElementoClass = subsubElementoInfo.className || subsubp.elemento.toLowerCase();
-                            
-                            html += `
-                                <div class="relevo-subsubperiodo ${subsubElementoClass}">
-                                    <h6>${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - ${subsubp.regente}</h6>
-                                    <p>
-                                        Sub-subperiodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
-                                        <br>
-                                        Edad: ${subsubp.edad} años
-                                    </p>
-                            `;
-                            
-                            // NUEVO: Añadir un nivel más de sub-sub-subperiodos
-                            if (subsubp.subperiodos && subsubp.subperiodos.length > 0) {
-                                subsubp.subperiodos.forEach(subsubsubp => {
-                                    // Obtener clase para sub-sub-subperiodo
-                                    let subsubsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubsubp.signo]] || {
-                                        elemento: 'Neutral',
-                                        color: '#f8f9fa',
-                                        borde: '#6c757d',
-                                        className: ''
-                                    };
-                                    
-                                    let subsubsubElementoClass = subsubsubElementoInfo.className || subsubsubp.elemento.toLowerCase();
-                                    
-                                    html += `
-                                        <div class="relevo-subsubsubperiodo ${subsubsubElementoClass}">
-                                            <h6>${subsubsubp.signo.charAt(0).toUpperCase() + subsubsubp.signo.slice(1)} - ${subsubsubp.regente}</h6>
-                                            <p>
-                                                Sub-sub-subperiodo: ${subsubsubp.fechaInicio} - ${subsubsubp.fechaFin}
-                                                <br>
-                                                Edad: ${subsubsubp.edad} años
-                                            </p>
-                                        </div>
-                                    `;
-                                });
-                            }
-                            html += `</div>`;
-                        });
-                    }
-                    
-                    html += `</div>`;
-                });
-            }
-            
-            html += `</div>`;
-        });
-        
-        relevoZodiacalContainer.innerHTML = html;
+        relevoZodiacalContainer.innerHTML = generarHTMLPeriodos(periodosActivos);
         console.log("Relevo Zodiacal mostrado correctamente");
         
     } catch (error) {
         console.error("Error calculando Relevo Zodiacal:", error);
         relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error al calcular el relevo zodiacal: ${error.message}</div>`;
     }
+}
+
+// Nueva función para generar HTML de periodos
+function generarHTMLPeriodos(periodos) {
+    let html = '';
+    
+    periodos.forEach(periodo => {
+        // Obtener información del elemento del signo
+        let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
+            elemento: 'Neutral',
+            color: '#f8f9fa',
+            borde: '#6c757d',
+            className: ''
+        };
+        
+        // Determinar la clase para el elemento
+        let elementoClass = elementoInfo.className || periodo.elemento?.toLowerCase() || 'neutral';
+        
+        html += `
+            <div class="relevo-periodo ${elementoClass}">
+                <h5>${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - ${periodo.regente}</h5>
+                <p>
+                    Periodo: ${periodo.fechaInicio} - ${periodo.fechaFin}
+                    <br>
+                    Edad: ${periodo.edad} años
+                </p>
+        `;
+        
+        if (periodo.subperiodos && periodo.subperiodos.length > 0) {
+            periodo.subperiodos.forEach(subp => {
+                // Obtener clase para subperiodo
+                let subElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subp.signo]] || {
+                    elemento: 'Neutral',
+                    color: '#f8f9fa',
+                    borde: '#6c757d',
+                    className: ''
+                };
+                
+                let subElementoClass = subElementoInfo.className || subp.elemento?.toLowerCase() || 'neutral';
+                
+                html += `
+                    <div class="relevo-subperiodo ${subElementoClass}">
+                        <h6>${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - ${subp.regente}</h6>
+                        <p>
+                            Subperiodo: ${subp.fechaInicio} - ${subp.fechaFin}
+                            <br>
+                            Edad: ${subp.edad} años
+                        </p>
+                `;
+                
+                if (subp.subperiodos && subp.subperiodos.length > 0) {
+                    subp.subperiodos.forEach(subsubp => {
+                        // Obtener clase para sub-subperiodo
+                        let subsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubp.signo]] || {
+                            elemento: 'Neutral',
+                            color: '#f8f9fa',
+                            borde: '#6c757d',
+                            className: ''
+                        };
+                        
+                        let subsubElementoClass = subsubElementoInfo.className || subsubp.elemento?.toLowerCase() || 'neutral';
+                        
+                        html += `
+                            <div class="relevo-subsubperiodo ${subsubElementoClass}">
+                                <h6>${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - ${subsubp.regente}</h6>
+                                <p>
+                                    Sub-subperiodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
+                                    <br>
+                                    Edad: ${subsubp.edad} años
+                                </p>
+                        `;
+                        
+                        // NUEVO: Añadir un nivel más de sub-sub-subperiodos
+                        if (subsubp.subperiodos && subsubp.subperiodos.length > 0) {
+                            subsubp.subperiodos.forEach(subsubsubp => {
+                                // Obtener clase para sub-sub-subperiodo
+                                let subsubsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubsubp.signo]] || {
+                                    elemento: 'Neutral',
+                                    color: '#f8f9fa',
+                                    borde: '#6c757d',
+                                    className: ''
+                                };
+                                
+                                let subsubsubElementoClass = subsubsubElementoInfo.className || subsubsubp.elemento?.toLowerCase() || 'neutral';
+                                
+                                html += `
+                                    <div class="relevo-subsubsubperiodo ${subsubsubElementoClass}">
+                                        <h6>${subsubsubp.signo.charAt(0).toUpperCase() + subsubsubp.signo.slice(1)} - ${subsubsubp.regente}</h6>
+                                        <p>
+                                            Sub-sub-subperiodo: ${subsubsubp.fechaInicio} - ${subsubsubp.fechaFin}
+                                            <br>
+                                            Edad: ${subsubsubp.edad} años
+                                        </p>
+                                    </div>
+                                `;
+                            });
+                        }
+                        html += `</div>`;
+                    });
+                }
+                
+                html += `</div>`;
+            });
+        }
+        
+        html += `</div>`;
+    });
+    
+    return html;
+}
+
+// Nueva función para generar un periodo de ejemplo con 4 niveles
+function generarPeriodoEjemplo(signo, fechaNac, fechaTransito) {
+    // Mapeo de elementos para signos
+    const elementosSignos = {
+        'aries': 'Fuego',
+        'leo': 'Fuego',
+        'sagitario': 'Fuego',
+        'tauro': 'Tierra',
+        'virgo': 'Tierra',
+        'capricornio': 'Tierra',
+        'geminis': 'Aire',
+        'libra': 'Aire',
+        'acuario': 'Aire',
+        'ofiuco': 'Aire',
+        'cancer': 'Agua',
+        'escorpio': 'Agua',
+        'piscis': 'Agua'
+    };
+    
+    // Regentes planetarios para cada signo
+    const regentesSignos = {
+        'aries': 'Marte',
+        'tauro': 'Venus',
+        'geminis': 'Mercurio',
+        'cancer': 'Luna',
+        'leo': 'Sol',
+        'virgo': 'Mercurio',
+        'libra': 'Venus',
+        'escorpio': 'Marte',
+        'ofiuco': 'Saturno',
+        'sagitario': 'Júpiter',
+        'capricornio': 'Sol',
+        'acuario': 'Luna',
+        'piscis': 'Júpiter'
+    };
+    
+    // Generar secuencia de signos
+    const secuencia = generarSecuencia(signo);
+    
+    // Crear fechas para el periodo principal (un año atrás hasta un año después)
+    const añoMilisegundos = 365 * 24 * 60 * 60 * 1000;
+    const fechaInicioPeriodo = new Date(fechaTransito.getTime() - añoMilisegundos);
+    const fechaFinPeriodo = new Date(fechaTransito.getTime() + añoMilisegundos);
+    
+    // Calcular edades
+    const edadInicio = calcularEdad(fechaNac, fechaInicioPeriodo);
+    
+    // Crear periodo principal
+    const periodo = {
+        signo: signo,
+        nivel: 1,
+        fechaInicio: fechaInicioPeriodo.toLocaleDateString('es-ES'),
+        fechaFin: fechaFinPeriodo.toLocaleDateString('es-ES'),
+        edad: edadInicio,
+        regente: regentesSignos[signo] || 'Desconocido',
+        elemento: elementosSignos[signo] || 'Neutral',
+        subperiodos: []
+    };
+    
+    // Crear subperiodo (3 meses)
+    const tresMesesMilisegundos = 90 * 24 * 60 * 60 * 1000;
+    const fechaInicioSubperiodo = new Date(fechaTransito.getTime() - tresMesesMilisegundos);
+    const fechaFinSubperiodo = new Date(fechaTransito.getTime() + tresMesesMilisegundos);
+    const edadSubperiodo = calcularEdad(fechaNac, fechaInicioSubperiodo);
+    
+    const subSigno = secuencia[1]; // Usar el segundo signo de la secuencia
+    const subperiodo = {
+        signo: subSigno,
+        nivel: 2,
+        fechaInicio: fechaInicioSubperiodo.toLocaleDateString('es-ES'),
+        fechaFin: fechaFinSubperiodo.toLocaleDateString('es-ES'),
+        edad: edadSubperiodo,
+        regente: regentesSignos[subSigno] || 'Desconocido',
+        elemento: elementosSignos[subSigno] || 'Neutral',
+        subperiodos: []
+    };
+    
+    // Crear sub-subperiodo (1 mes)
+    const unMesMilisegundos = 30 * 24 * 60 * 60 * 1000;
+    const fechaInicioSubSubperiodo = new Date(fechaTransito.getTime() - unMesMilisegundos);
+    const fechaFinSubSubperiodo = new Date(fechaTransito.getTime() + unMesMilisegundos);
+    const edadSubSubperiodo = calcularEdad(fechaNac, fechaInicioSubSubperiodo);
+    
+    const subSubSigno = secuencia[2]; // Usar el tercer signo de la secuencia
+    const subSubperiodo = {
+        signo: subSubSigno,
+        nivel: 3,
+        fechaInicio: fechaInicioSubSubperiodo.toLocaleDateString('es-ES'),
+        fechaFin: fechaFinSubSubperiodo.toLocaleDateString('es-ES'),
+        edad: edadSubSubperiodo,
+        regente: regentesSignos[subSubSigno] || 'Desconocido',
+        elemento: elementosSignos[subSubSigno] || 'Neutral',
+        subperiodos: []
+    };
+    
+    // Crear sub-sub-subperiodo (1 semana)
+    const unaSemanaMillisegundos = 7 * 24 * 60 * 60 * 1000;
+    const fechaInicioSubSubSubperiodo = new Date(fechaTransito.getTime() - unaSemanaMillisegundos);
+    const fechaFinSubSubSubperiodo = new Date(fechaTransito.getTime() + unaSemanaMillisegundos);
+    const edadSubSubSubperiodo = calcularEdad(fechaNac, fechaInicioSubSubSubperiodo);
+    
+    const subSubSubSigno = secuencia[3]; // Usar el cuarto signo de la secuencia
+    const subSubSubperiodo = {
+        signo: subSubSubSigno,
+        nivel: 4,
+        fechaInicio: fechaInicioSubSubSubperiodo.toLocaleDateString('es-ES'),
+        fechaFin: fechaFinSubSubSubperiodo.toLocaleDateString('es-ES'),
+        edad: edadSubSubSubperiodo,
+        regente: regentesSignos[subSubSubSigno] || 'Desconocido',
+        elemento: elementosSignos[subSubSubSigno] || 'Neutral'
+    };
+    
+    // Armar la estructura jerárquica
+    subSubperiodo.subperiodos = [subSubSubperiodo];
+    subperiodo.subperiodos = [subSubperiodo];
+    periodo.subperiodos = [subperiodo];
+    
+    return periodo;
 }
         
         // Función auxiliar para calcular el relevo zodiacal
