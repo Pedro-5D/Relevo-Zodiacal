@@ -2333,126 +2333,167 @@
 
         // Calcular relevo zodiacal
         function calcularYMostrarRelevoZodiacal() {
-            console.log("Calculando y mostrando Relevo Zodiacal");
+    console.log("Calculando y mostrando Relevo Zodiacal automáticamente");
+    
+    // Verificar que existe el contenedor
+    if (!relevoZodiacalContainer) {
+        console.log("No se encontró el contenedor de Relevo Zodiacal");
+        return;
+    }
+    
+    // Verificar si tenemos los datos necesarios (natal planets y ascendente)
+    if (!natalPlanets || natalPlanets.length === 0) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron datos de la carta natal. Por favor, calcula la carta astral primero.</div>';
+        return;
+    }
+    
+    // Obtener fecha de nacimiento y tránsito
+    const transitDate = transitDateInput ? transitDateInput.value : null;
+    
+    if (!transitDate) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo encontrar la fecha de tránsito. Por favor, asegúrate de haberla seleccionado.</div>';
+        return;
+    }
+    
+    if (!birthDate) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar la fecha de nacimiento.</div>';
+        return;
+    }
+    
+    // Obtener ascendente
+    const ascPlanet = natalPlanets.find(p => p.name === 'ASC');
+    if (!ascPlanet || !ascPlanet.sign) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar el ascendente.</div>';
+        return;
+    }
+    
+    console.log("Calculando Relevo para:", ascPlanet.sign);
+    
+    // Mostrar mensaje de carga
+    relevoZodiacalContainer.innerHTML = '<div class="alert alert-info">Calculando relevo zodiacal...</div>';
+    
+    try {
+        // Calcular periodos de Relevo Zodiacal
+        const periodosActivos = calcularRelevoZodiacal(birthDate, ascPlanet.sign, transitDate);
+        
+        if (!periodosActivos || periodosActivos.length === 0) {
+            relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos activos para la fecha seleccionada.</div>';
+            return;
+        }
+        
+        // Generar HTML para mostrar los periodos
+        let html = '';
+        
+        periodosActivos.forEach(periodo => {
+            // Obtener información del elemento del signo
+            let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
+                elemento: 'Neutral',
+                color: '#f8f9fa',
+                borde: '#6c757d',
+                className: ''
+            };
             
-            // Verificar que existe el contenedor
-            if (!relevoZodiacalContainer) {
-                console.log("No se encontró el contenedor de Relevo Zodiacal");
-                return;
-            }
+            // Determinar la clase para el elemento
+            let elementoClass = elementoInfo.className || periodo.elemento.toLowerCase();
             
-            // Verificar si tenemos los datos necesarios (natal planets y ascendente)
-            if (!natalPlanets || natalPlanets.length === 0) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron datos de la carta natal. Por favor, calcula la carta astral primero.</div>';
-                return;
-            }
+            html += `
+                <div class="relevo-periodo ${elementoClass}">
+                    <h5>${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - ${periodo.regente}</h5>
+                    <p>
+                        Periodo: ${periodo.fechaInicio} - ${periodo.fechaFin}
+                        <br>
+                        Edad: ${periodo.edad} años
+                    </p>
+            `;
             
-            // Obtener fecha de nacimiento y tránsito
-            const transitDate = transitDateInput ? transitDateInput.value : null;
-            
-            if (!transitDate) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo encontrar la fecha de tránsito. Por favor, asegúrate de haberla seleccionado.</div>';
-                return;
-            }
-            
-            if (!birthDate) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar la fecha de nacimiento.</div>';
-                return;
-            }
-            
-            // Obtener ascendente
-            const ascPlanet = natalPlanets.find(p => p.name === 'ASC');
-            if (!ascPlanet || !ascPlanet.sign) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar el ascendente.</div>';
-                return;
-            }
-            
-            console.log("Calculando Relevo para:", ascPlanet.sign);
-            
-            // Mostrar mensaje de carga
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-info">Calculando relevo zodiacal...</div>';
-            
-            try {
-                // Calcular periodos de Relevo Zodiacal
-                const periodosActivos = calcularRelevoZodiacal(birthDate, ascPlanet.sign, transitDate);
-                
-                if (!periodosActivos || periodosActivos.length === 0) {
-                    relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos activos para la fecha seleccionada.</div>';
-                    return;
-                }
-                
-                // Generar HTML para mostrar los periodos
-                let html = '';
-                
-                periodosActivos.forEach(periodo => {
-                    // Obtener información del elemento del signo
-                    let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
+            if (periodo.subperiodos && periodo.subperiodos.length > 0) {
+                periodo.subperiodos.forEach(subp => {
+                    // Obtener clase para subperiodo
+                    let subElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subp.signo]] || {
                         elemento: 'Neutral',
                         color: '#f8f9fa',
-                        borde: '#6c757d'
+                        borde: '#6c757d',
+                        className: ''
                     };
                     
+                    let subElementoClass = subElementoInfo.className || subp.elemento.toLowerCase();
+                    
                     html += `
-                        <div class="relevo-periodo ${periodo.elemento.toLowerCase()}">
-                            <h5>
-                                ${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - Nivel ${periodo.nivel}
-                                <small class="text-muted">(Elemento: ${periodo.elemento}, Regente: ${periodo.regente})</small>
-                            </h5>
+                        <div class="relevo-subperiodo ${subElementoClass}">
+                            <h6>${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - ${subp.regente}</h6>
                             <p>
-                                Periodo: ${periodo.fechaInicio} - ${periodo.fechaFin}
+                                Subperiodo: ${subp.fechaInicio} - ${subp.fechaFin}
                                 <br>
-                                Edad: ${periodo.edad} años
+                                Edad: ${subp.edad} años
                             </p>
                     `;
                     
-                    if (periodo.subperiodos && periodo.subperiodos.length > 0) {
-                        periodo.subperiodos.forEach(subp => {
+                    if (subp.subperiodos && subp.subperiodos.length > 0) {
+                        subp.subperiodos.forEach(subsubp => {
+                            // Obtener clase para sub-subperiodo
+                            let subsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubp.signo]] || {
+                                elemento: 'Neutral',
+                                color: '#f8f9fa',
+                                borde: '#6c757d',
+                                className: ''
+                            };
+                            
+                            let subsubElementoClass = subsubElementoInfo.className || subsubp.elemento.toLowerCase();
+                            
                             html += `
-                                <div class="relevo-subperiodo ${subp.elemento.toLowerCase()}">
-                                    <h6>
-                                        ${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - Nivel ${subp.nivel}
-                                        <small class="text-muted">(Elemento: ${subp.elemento}, Regente: ${subp.regente})</small>
-                                    </h6>
+                                <div class="relevo-subsubperiodo ${subsubElementoClass}">
+                                    <h6>${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - ${subsubp.regente}</h6>
                                     <p>
-                                        Subperiodo: ${subp.fechaInicio} - ${subp.fechaFin}
+                                        Sub-subperiodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
                                         <br>
-                                        Edad: ${subp.edad} años
+                                        Edad: ${subsubp.edad} años
                                     </p>
                             `;
                             
-                            if (subp.subperiodos && subp.subperiodos.length > 0) {
-                                subp.subperiodos.forEach(subsubp => {
+                            // NUEVO: Añadir un nivel más de sub-sub-subperiodos
+                            if (subsubp.subperiodos && subsubp.subperiodos.length > 0) {
+                                subsubp.subperiodos.forEach(subsubsubp => {
+                                    // Obtener clase para sub-sub-subperiodo
+                                    let subsubsubElementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[subsubsubp.signo]] || {
+                                        elemento: 'Neutral',
+                                        color: '#f8f9fa',
+                                        borde: '#6c757d',
+                                        className: ''
+                                    };
+                                    
+                                    let subsubsubElementoClass = subsubsubElementoInfo.className || subsubsubp.elemento.toLowerCase();
+                                    
                                     html += `
-                                        <div class="relevo-subsubperiodo ${subsubp.elemento.toLowerCase()}">
-                                            <h6>
-                                                ${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - Nivel ${subsubp.nivel}
-                                                <small class="text-muted">(Elemento: ${subsubp.elemento}, Regente: ${subsubp.regente})</small>
-                                            </h6>
+                                        <div class="relevo-subsubsubperiodo ${subsubsubElementoClass}">
+                                            <h6>${subsubsubp.signo.charAt(0).toUpperCase() + subsubsubp.signo.slice(1)} - ${subsubsubp.regente}</h6>
                                             <p>
-                                                Sub-subperiodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
+                                                Sub-sub-subperiodo: ${subsubsubp.fechaInicio} - ${subsubsubp.fechaFin}
                                                 <br>
-                                                Edad: ${subsubp.edad} años
+                                                Edad: ${subsubsubp.edad} años
                                             </p>
                                         </div>
                                     `;
                                 });
                             }
-                            
                             html += `</div>`;
                         });
                     }
                     
                     html += `</div>`;
                 });
-                
-                relevoZodiacalContainer.innerHTML = html;
-                console.log("Relevo Zodiacal mostrado correctamente");
-                
-            } catch (error) {
-                console.error("Error calculando Relevo Zodiacal:", error);
-                relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error al calcular el relevo zodiacal: ${error.message}</div>`;
             }
-        }
+            
+            html += `</div>`;
+        });
+        
+        relevoZodiacalContainer.innerHTML = html;
+        console.log("Relevo Zodiacal mostrado correctamente");
+        
+    } catch (error) {
+        console.error("Error calculando Relevo Zodiacal:", error);
+        relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error al calcular el relevo zodiacal: ${error.message}</div>`;
+    }
+}
         
         // Función auxiliar para calcular el relevo zodiacal
         function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
