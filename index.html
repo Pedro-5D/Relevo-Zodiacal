@@ -2639,60 +2639,8 @@ function convertirFechaDesdeString(fechaStr) {
     }
 }
 
-// Modified calcularYMostrarSoloRelevsActivos function
-function calcularYMostrarSoloRelevsActivos(fechaNac, ascendente, fechaTransito) {
-    console.log("Calculando relevo con solo periodos activos para fecha:", fechaTransito);
-    
-    try {
-        // Convertir fechaTransito a objeto Date si es string
-        let fechaTransitoObj;
-        if (typeof fechaTransito === 'string') {
-            fechaTransitoObj = new Date(fechaTransito);
-        } else {
-            fechaTransitoObj = fechaTransito;
-        }
-        
-        console.log("Fecha de tránsito como objeto:", fechaTransitoObj);
-        console.log("Fecha de nacimiento:", fechaNac);
-        
-        // Validar que la fecha de tránsito sea válida
-        if (isNaN(fechaTransitoObj.getTime())) {
-            console.error("Fecha de tránsito inválida:", fechaTransito);
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-danger">Fecha de tránsito inválida. Por favor, selecciona una fecha válida.</div>';
-            return;
-        }
-        
-        // Calcular periodos usando la implementación robusta corregida
-        let periodos = [];
-        
-        try {
-            periodos = calcularRelevoZodiacalRobusto(fechaNac, ascendente, fechaTransitoObj);
-            console.log("Periodos calculados usando método robusto corregido:", periodos);
-        } catch (error) {
-            console.error("Error en cálculo robusto:", error);
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-danger">Error al calcular el relevo zodiacal: ' + error.message + '</div>';
-            return;
-        }
-        
-        // Si no se encontraron periodos
-        if (!periodos || periodos.length === 0) {
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos para la fecha seleccionada.</div>';
-            return;
-        }
-        
-        // Mostrar los periodos con uno solo por nivel
-        mostrarPeriodosRelevo(periodos);
-        
-    } catch (error) {
-        console.error("Error general en cálculo de relevo zodiacal:", error);
-        relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error al calcular el relevo zodiacal: ${error.message}</div>`;
-    }
-}
-
-// CORRECTED VERSION: Calculation of Relevo Zodiacal that properly uses the birth date
+// Versión robusta para calcular el relevo zodiacal - mostrando solo un periodo por nivel
 function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
-    console.log("Iniciando cálculo robusto con fecha de nacimiento exacta:", birthDate);
-    
     // Convertir fechas a objetos Date
     const fechaNac = new Date(birthDate);
     const fechaTransito = new Date(transitDate);
@@ -2776,14 +2724,13 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         const anios = DURACION_POR_NIVEL[signo];
         const diasEnPeriodo = anios * DURACIONES.AÑO;
         
-        // CORRECCIÓN: Usar la fecha exacta de nacimiento como punto de partida
+        // Calcular fecha de inicio y fin del periodo
+        // CORRECCIÓN: Usando la fecha exacta de nacimiento como punto de partida
         const fechaInicio = new Date(fechaNac);
         fechaInicio.setDate(fechaInicio.getDate() + diaActual);
         
         const fechaFin = new Date(fechaInicio);
         fechaFin.setDate(fechaInicio.getDate() + diasEnPeriodo);
-        
-        console.log(`Nivel 1 - Signo: ${signo}, Inicio: ${fechaInicio.toLocaleDateString()}, Fin: ${fechaFin.toLocaleDateString()}`);
         
         // Comprobar si la fecha de tránsito está dentro de este periodo
         if (fechaTransito >= fechaInicio && fechaTransito <= fechaFin) {
@@ -2812,38 +2759,29 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
     
     // Si no encontramos un periodo activo, devolver array vacío
     if (!periodoNivel1) {
-        console.warn("No se encontró ningún periodo de nivel 1 activo");
         return periodosActivos;
     }
     
     // NIVEL 2 - Encontrar el subperiodo activo
     const signoNivel1 = periodoNivel1.signo;
     const subSecuencia = generarSecuencia(signoNivel1);
+    let diaInicioNivel1 = 0;
+    let fechaInicioNivel1 = new Date(fechaNac);
     
-    // CORRECCIÓN: Convertir fechaInicio de string a Date y asegurarnos de usar fechaNac como base
-    let fechaInicioNivel1;
-    try {
-        // Intentar obtener la fecha desde el string
-        const partes = periodoNivel1.fechaInicio.split('/');
-        if (partes.length === 3) {
-            fechaInicioNivel1 = new Date(
-                parseInt(partes[2]), // año
-                parseInt(partes[1]) - 1, // mes (0-11)
-                parseInt(partes[0]) // día
-            );
-        } else {
-            // Si falla, calcular basándonos en fechaNac
-            fechaInicioNivel1 = new Date(fechaNac.getTime());
-            fechaInicioNivel1.setDate(fechaInicioNivel1.getDate() + diaActual - (periodoNivel1.subperiodos.length > 0 ? periodoNivel1.subperiodos[0].diaActual : 0));
+    // Calcular el día de inicio del periodo nivel 1
+    for (let i = 0; i < secuencia.length; i++) {
+        const signo = secuencia[i];
+        if (signo === signoNivel1) {
+            break;
         }
-    } catch (e) {
-        console.error("Error convirtiendo fechaInicioNivel1:", e);
-        fechaInicioNivel1 = new Date(fechaNac.getTime());
+        const anios = DURACION_POR_NIVEL[signo] || 0;
+        diaInicioNivel1 += anios * DURACIONES.AÑO;
     }
+    fechaInicioNivel1.setDate(fechaInicioNivel1.getDate() + diaInicioNivel1);
     
     // Buscar subperiodo activo
     let periodoNivel2 = null;
-    let diaInicioNivel2 = Math.floor((fechaInicioNivel1.getTime() - fechaNac.getTime()) / (24 * 60 * 60 * 1000));
+    let diaActualNivel2 = diaInicioNivel1;
     
     for (let j = 0; j < subSecuencia.length; j++) {
         const subSigno = subSecuencia[j];
@@ -2857,14 +2795,20 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         const meses = DURACION_POR_NIVEL[subSigno];
         const diasEnSubperiodo = meses * DURACIONES.MES;
         
-        // CORRECCIÓN: Usar fecha exacta de nacimiento como base
+        // Calcular fecha de inicio y fin del subperiodo
         const fechaInicioSub = new Date(fechaNac);
-        fechaInicioSub.setDate(fechaInicioSub.getDate() + diaInicioNivel2);
+        fechaInicioSub.setDate(fechaInicioSub.getDate() + diaActualNivel2);
         
         const fechaFinSub = new Date(fechaInicioSub);
         fechaFinSub.setDate(fechaInicioSub.getDate() + diasEnSubperiodo);
         
-        console.log(`Nivel 2 - Signo: ${subSigno}, Inicio: ${fechaInicioSub.toLocaleDateString()}, Fin: ${fechaFinSub.toLocaleDateString()}`);
+        // Verificar límites con periodo principal
+        const fechaFinPeriodo1 = new Date(fechaNac);
+        fechaFinPeriodo1.setDate(fechaFinPeriodo1.getDate() + diaInicioNivel1 + (DURACION_POR_NIVEL[signoNivel1] * DURACIONES.AÑO));
+        
+        if (fechaFinSub > fechaFinPeriodo1) {
+            fechaFinSub.setTime(fechaFinPeriodo1.getTime());
+        }
         
         // Comprobar si la fecha de tránsito está dentro de este subperiodo
         if (fechaTransito >= fechaInicioSub && fechaTransito <= fechaFinSub) {
@@ -2888,18 +2832,16 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         }
         
         // Avanzar al siguiente subperiodo
-        diaInicioNivel2 += diasEnSubperiodo;
+        diaActualNivel2 += diasEnSubperiodo;
     }
     
-    // Si no encontramos un subperiodo activo, crear uno aproximado
+    // Si no encontramos un subperiodo activo, usar datos aproximados
     if (!periodoNivel2) {
-        console.warn("No se encontró ningún periodo de nivel 2 activo, creando uno aproximado");
-        
         periodoNivel2 = {
-            signo: signoNivel1, // Usar el mismo signo del nivel 1
+            signo: signoNivel1, // Usar el mismo signo del nivel 1 como respaldo
             nivel: 2,
-            fechaInicio: periodoNivel1.fechaInicio,
-            fechaFin: periodoNivel1.fechaFin,
+            fechaInicio: "No determinado",
+            fechaFin: "No determinado",
             edad: periodoNivel1.edad,
             regente: regentesSignos[signoNivel1] || 'Desconocido',
             elemento: elementosSignos[signoNivel1] || 'Neutral',
@@ -2911,32 +2853,13 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
     // NIVEL 3 - Encontrar el sub-subperiodo activo
     const signoNivel2 = periodoNivel2.signo;
     const subSubSecuencia = generarSecuencia(signoNivel2);
-    
-    // CORRECCIÓN: Convertir fechaInicioNivel2 de string a Date
-    let fechaInicioNivel2;
-    try {
-        // Intentar obtener la fecha desde el string
-        const partes = periodoNivel2.fechaInicio.split('/');
-        if (partes.length === 3) {
-            fechaInicioNivel2 = new Date(
-                parseInt(partes[2]), // año
-                parseInt(partes[1]) - 1, // mes (0-11)
-                parseInt(partes[0]) // día
-            );
-        } else {
-            // Si falla, volver a fechaNac
-            fechaInicioNivel2 = new Date(fechaNac.getTime());
-            fechaInicioNivel2.setDate(fechaInicioNivel2.getDate() + diaInicioNivel2);
-        }
-    } catch (e) {
-        console.error("Error convirtiendo fechaInicioNivel2:", e);
-        fechaInicioNivel2 = new Date(fechaNac.getTime());
-        fechaInicioNivel2.setDate(fechaInicioNivel2.getDate() + diaInicioNivel2);
-    }
+    let diaInicioNivel2 = 0;
     
     // Buscar sub-subperiodo activo
     let periodoNivel3 = null;
-    let diaInicioNivel3 = Math.floor((fechaInicioNivel2.getTime() - fechaNac.getTime()) / (24 * 60 * 60 * 1000));
+    // Calcular el día de inicio del periodo nivel 2 (es complejo, así que usamos las fechas)
+    const fechaInicioNivel2 = new Date(periodoNivel2.fechaInicio.split('/').reverse().join('/'));
+    let diaActualNivel3 = Math.floor((fechaInicioNivel2.getTime() - fechaNac.getTime()) / (24 * 60 * 60 * 1000));
     
     for (let k = 0; k < subSubSecuencia.length; k++) {
         const subSubSigno = subSubSecuencia[k];
@@ -2950,14 +2873,18 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         const semanas = DURACION_POR_NIVEL[subSubSigno];
         const diasEnSubSubperiodo = semanas * DURACIONES.SEMANA;
         
-        // CORRECCIÓN: Usar fecha exacta de nacimiento como base
+        // Calcular fecha de inicio y fin del sub-subperiodo
         const fechaInicioSubSub = new Date(fechaNac);
-        fechaInicioSubSub.setDate(fechaInicioSubSub.getDate() + diaInicioNivel3);
+        fechaInicioSubSub.setDate(fechaInicioSubSub.getDate() + diaActualNivel3);
         
         const fechaFinSubSub = new Date(fechaInicioSubSub);
         fechaFinSubSub.setDate(fechaInicioSubSub.getDate() + diasEnSubSubperiodo);
         
-        console.log(`Nivel 3 - Signo: ${subSubSigno}, Inicio: ${fechaInicioSubSub.toLocaleDateString()}, Fin: ${fechaFinSubSub.toLocaleDateString()}`);
+        // Verificar límites con periodo nivel 2
+        const fechaFinNivel2 = new Date(periodoNivel2.fechaFin.split('/').reverse().join('/'));
+        if (fechaFinSubSub > fechaFinNivel2) {
+            fechaFinSubSub.setTime(fechaFinNivel2.getTime());
+        }
         
         // Comprobar si la fecha de tránsito está dentro de este sub-subperiodo
         if (fechaTransito >= fechaInicioSubSub && fechaTransito <= fechaFinSubSub) {
@@ -2981,18 +2908,16 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         }
         
         // Avanzar al siguiente sub-subperiodo
-        diaInicioNivel3 += diasEnSubSubperiodo;
+        diaActualNivel3 += diasEnSubSubperiodo;
     }
     
-    // Si no encontramos un sub-subperiodo activo, crear uno aproximado
+    // Si no encontramos un sub-subperiodo activo, usar datos aproximados
     if (!periodoNivel3) {
-        console.warn("No se encontró ningún periodo de nivel 3 activo, creando uno aproximado");
-        
         periodoNivel3 = {
-            signo: signoNivel2, // Usar el mismo signo del nivel 2
+            signo: signoNivel2, // Usar el mismo signo del nivel 2 como respaldo
             nivel: 3,
-            fechaInicio: periodoNivel2.fechaInicio,
-            fechaFin: periodoNivel2.fechaFin,
+            fechaInicio: "No determinado",
+            fechaFin: "No determinado",
             edad: periodoNivel2.edad,
             regente: regentesSignos[signoNivel2] || 'Desconocido',
             elemento: elementosSignos[signoNivel2] || 'Neutral',
@@ -3005,31 +2930,15 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
     const signoNivel3 = periodoNivel3.signo;
     const subSubSubSecuencia = generarSecuencia(signoNivel3);
     
-    // CORRECCIÓN: Convertir fechaInicioNivel3 de string a Date
-    let fechaInicioNivel3;
-    try {
-        // Intentar obtener la fecha desde el string
-        const partes = periodoNivel3.fechaInicio.split('/');
-        if (partes.length === 3) {
-            fechaInicioNivel3 = new Date(
-                parseInt(partes[2]), // año
-                parseInt(partes[1]) - 1, // mes (0-11)
-                parseInt(partes[0]) // día
-            );
-        } else {
-            // Si falla, volver a fechaNac
-            fechaInicioNivel3 = new Date(fechaNac.getTime());
-            fechaInicioNivel3.setDate(fechaInicioNivel3.getDate() + diaInicioNivel3);
-        }
-    } catch (e) {
-        console.error("Error convirtiendo fechaInicioNivel3:", e);
-        fechaInicioNivel3 = new Date(fechaNac.getTime());
-        fechaInicioNivel3.setDate(fechaInicioNivel3.getDate() + diaInicioNivel3);
-    }
-    
-    // Buscar sub-sub-subperiodo activo (día específico)
+    // Buscar sub-sub-subperiodo activo
     let periodoNivel4 = null;
-    let diaInicioNivel4 = Math.floor((fechaInicioNivel3.getTime() - fechaNac.getTime()) / (24 * 60 * 60 * 1000));
+    // Determinar el día actual - en nivel 4 nos interesa específicamente el día exacto
+    
+    // Buscar qué signo zodiacal corresponde específicamente a la fecha de tránsito
+    // Al ser nivel 4, cada signo corresponde a días específicos
+    let signoDelDia = null;
+    let fechaInicioNivel3 = new Date(periodoNivel3.fechaInicio.split('/').reverse().join('/'));
+    let diaActualNivel4 = Math.floor((fechaInicioNivel3.getTime() - fechaNac.getTime()) / (24 * 60 * 60 * 1000));
     
     for (let l = 0; l < subSubSubSecuencia.length; l++) {
         const subSubSubSigno = subSubSubSecuencia[l];
@@ -3043,17 +2952,24 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         const dias = DURACION_POR_NIVEL[subSubSubSigno];
         const diasEnSubSubSubperiodo = dias * DURACIONES.DIA;
         
-        // CORRECCIÓN: Usar fecha exacta de nacimiento como base
+        // Calcular fecha de inicio y fin para el nivel 4
         const fechaInicioSubSubSub = new Date(fechaNac);
-        fechaInicioSubSubSub.setDate(fechaInicioSubSubSub.getDate() + diaInicioNivel4);
+        fechaInicioSubSubSub.setDate(fechaInicioSubSubSub.getDate() + diaActualNivel4);
         
         const fechaFinSubSubSub = new Date(fechaInicioSubSubSub);
         fechaFinSubSubSub.setDate(fechaInicioSubSubSub.getDate() + diasEnSubSubSubperiodo);
         
-        console.log(`Nivel 4 - Signo: ${subSubSubSigno}, Inicio: ${fechaInicioSubSubSub.toLocaleDateString()}, Fin: ${fechaFinSubSubSub.toLocaleDateString()}`);
+        // Verificar límites con periodo nivel 3
+        const fechaFinNivel3 = new Date(periodoNivel3.fechaFin.split('/').reverse().join('/'));
+        if (fechaFinSubSubSub > fechaFinNivel3) {
+            fechaFinSubSubSub.setTime(fechaFinNivel3.getTime());
+        }
         
         // Comprobar si la fecha de tránsito está dentro de este sub-sub-subperiodo
         if (fechaTransito >= fechaInicioSubSubSub && fechaTransito <= fechaFinSubSubSub) {
+            // Encontramos el signo del día específico
+            signoDelDia = subSubSubSigno;
+            
             // Calcular edad para este nivel
             const edadSubSubSub = calcularEdad(fechaNac, fechaInicioSubSubSub);
             
@@ -3073,13 +2989,11 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
         }
         
         // Avanzar al siguiente día
-        diaInicioNivel4 += diasEnSubSubSubperiodo;
+        diaActualNivel4 += diasEnSubSubSubperiodo;
     }
     
     // Si no encontramos un periodo de nivel 4 activo, crear uno para el día exacto
     if (!periodoNivel4) {
-        console.warn("No se encontró ningún periodo de nivel 4 activo, creando uno para el día actual");
-        
         // Usar el primer signo de la secuencia como respaldo
         const signoRespaldo = subSubSubSecuencia[0];
         
@@ -3102,59 +3016,6 @@ function calcularRelevoZodiacalRobusto(birthDate, ascendente, transitDate) {
     periodosActivos.push(periodoNivel1); // Solo el periodo de nivel 1 activo
     
     return periodosActivos;
-}
-
-// Función auxiliar mejorada para convertir fechas en formato dd/mm/yyyy a objetos Date
-function convertirFechaDesdeString(fechaStr) {
-    try {
-        // Registrar la fecha original para depuración
-        console.log("Convirtiendo fecha:", fechaStr);
-        
-        // Intentar parsear fecha en formato dd/mm/yyyy
-        const partes = fechaStr.split('/');
-        if (partes.length === 3) {
-            // Formato español: dd/mm/yyyy
-            const fecha = new Date(
-                parseInt(partes[2]),  // año
-                parseInt(partes[1]) - 1,  // mes (0-11)
-                parseInt(partes[0])   // día
-            );
-            
-            // Verificar si la fecha resultante es válida
-            if (!isNaN(fecha.getTime())) {
-                return fecha;
-            }
-        }
-        
-        // Intentar parsear como fecha ISO (yyyy-mm-dd)
-        const partesISO = fechaStr.split('-');
-        if (partesISO.length === 3) {
-            const fecha = new Date(
-                parseInt(partesISO[0]),  // año
-                parseInt(partesISO[1]) - 1,  // mes (0-11)
-                parseInt(partesISO[2])   // día
-            );
-            
-            // Verificar si la fecha resultante es válida
-            if (!isNaN(fecha.getTime())) {
-                return fecha;
-            }
-        }
-        
-        // Si todo lo anterior falla, intentar con Date.parse
-        const ms = Date.parse(fechaStr);
-        if (!isNaN(ms)) {
-            return new Date(ms);
-        }
-        
-        // Si nada funciona, lanzar error
-        throw new Error("Formato de fecha no reconocido: " + fechaStr);
-    } catch (e) {
-        console.error("Error al convertir fecha:", fechaStr, e);
-        // Devolver fecha actual como fallback
-        console.warn("Usando fecha actual como fallback debido a error de conversión");
-        return new Date();
-    }
 }
 
 // Función modificada para mostrar tránsitos para una fecha específica
@@ -4017,4 +3878,4 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
     </script>
 </body>
 </html>
-calcularRelevoZodiacalRobusto
+calcularRelevoZodiacal
