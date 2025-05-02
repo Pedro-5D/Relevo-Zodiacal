@@ -2331,107 +2331,122 @@
             return signos.slice(pos).concat(signos.slice(0, pos));
         }
 
-        // Calcular relevo zodiacal
-        function calcularYMostrarRelevoZodiacal() {
-            console.log("Calculando y mostrando Relevo Zodiacal");
+function calcularYMostrarRelevoZodiacal() {
+    console.log("Calculando y mostrando Relevo Zodiacal");
+    
+    // Verificar que existe el contenedor
+    if (!relevoZodiacalContainer) {
+        console.log("No se encontró el contenedor de Relevo Zodiacal");
+        return;
+    }
+    
+    // Verificar si tenemos los datos necesarios (natal planets y ascendente)
+    if (!natalPlanets || natalPlanets.length === 0) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron datos de la carta natal. Por favor, calcula la carta astral primero.</div>';
+        return;
+    }
+    
+    // Obtener fecha de nacimiento y tránsito
+    const transitDate = transitDateInput ? transitDateInput.value : null;
+    
+    if (!transitDate) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo encontrar la fecha de tránsito. Por favor, asegúrate de haberla seleccionado.</div>';
+        return;
+    }
+    
+    if (!birthDate) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar la fecha de nacimiento.</div>';
+        return;
+    }
+    
+    // Obtener ascendente
+    const ascPlanet = natalPlanets.find(p => p.name === 'ASC');
+    if (!ascPlanet || !ascPlanet.sign) {
+        relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar el ascendente.</div>';
+        return;
+    }
+    
+    console.log("Calculando Relevo para:", ascPlanet.sign);
+    
+    // Mostrar mensaje de carga
+    relevoZodiacalContainer.innerHTML = '<div class="alert alert-info">Calculando relevo zodiacal...</div>';
+    
+    try {
+        // Calcular periodos de Relevo Zodiacal
+        const periodosActivos = calcularRelevoZodiacal(birthDate, ascPlanet.sign, transitDate);
+        
+        if (!periodosActivos || periodosActivos.length === 0) {
+            relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos activos para la fecha seleccionada.</div>';
+            return;
+        }
+        
+        // Generar HTML para mostrar los periodos (CON 4 NIVELES)
+        let html = '';
+        
+        periodosActivos.forEach(periodo => {
+            // Obtener información del elemento del signo
+            let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
+                elemento: 'Neutral',
+                color: '#f8f9fa',
+                borde: '#6c757d'
+            };
             
-            // Verificar que existe el contenedor
-            if (!relevoZodiacalContainer) {
-                console.log("No se encontró el contenedor de Relevo Zodiacal");
-                return;
-            }
+            html += `
+                <div class="relevo-periodo ${periodo.elemento.toLowerCase()}">
+                    <h5>
+                        ${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - Nivel 1
+                        <small class="text-muted">(Elemento: ${periodo.elemento}, Regente: ${periodo.regente})</small>
+                    </h5>
+                    <p>
+                        Periodo: ${periodo.fechaInicio} - ${periodo.fechaFin}
+                        <br>
+                        Edad: ${periodo.edad} años
+                    </p>
+            `;
             
-            // Verificar si tenemos los datos necesarios (natal planets y ascendente)
-            if (!natalPlanets || natalPlanets.length === 0) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron datos de la carta natal. Por favor, calcula la carta astral primero.</div>';
-                return;
-            }
-            
-            // Obtener fecha de nacimiento y tránsito
-            const transitDate = transitDateInput ? transitDateInput.value : null;
-            
-            if (!transitDate) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo encontrar la fecha de tránsito. Por favor, asegúrate de haberla seleccionado.</div>';
-                return;
-            }
-            
-            if (!birthDate) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar la fecha de nacimiento.</div>';
-                return;
-            }
-            
-            // Obtener ascendente
-            const ascPlanet = natalPlanets.find(p => p.name === 'ASC');
-            if (!ascPlanet || !ascPlanet.sign) {
-                relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se pudo determinar el ascendente.</div>';
-                return;
-            }
-            
-            console.log("Calculando Relevo para:", ascPlanet.sign);
-            
-            // Mostrar mensaje de carga
-            relevoZodiacalContainer.innerHTML = '<div class="alert alert-info">Calculando relevo zodiacal...</div>';
-            
-            try {
-                // Calcular periodos de Relevo Zodiacal
-                const periodosActivos = calcularRelevoZodiacal(birthDate, ascPlanet.sign, transitDate);
-                
-                if (!periodosActivos || periodosActivos.length === 0) {
-                    relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos activos para la fecha seleccionada.</div>';
-                    return;
-                }
-                
-                // Generar HTML para mostrar los periodos
-                let html = '';
-                
-                periodosActivos.forEach(periodo => {
-                    // Obtener información del elemento del signo
-                    let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
-                        elemento: 'Neutral',
-                        color: '#f8f9fa',
-                        borde: '#6c757d'
-                    };
-                    
+            if (periodo.subperiodos && periodo.subperiodos.length > 0) {
+                periodo.subperiodos.forEach(subp => {
                     html += `
-                        <div class="relevo-periodo ${periodo.elemento.toLowerCase()}">
-                            <h5>
-                                ${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - Nivel ${periodo.nivel}
-                                <small class="text-muted">(Elemento: ${periodo.elemento}, Regente: ${periodo.regente})</small>
-                            </h5>
+                        <div class="relevo-subperiodo ${subp.elemento.toLowerCase()}">
+                            <h6>
+                                ${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - Nivel 2
+                                <small class="text-muted">(Elemento: ${subp.elemento}, Regente: ${subp.regente})</small>
+                            </h6>
                             <p>
-                                Periodo: ${periodo.fechaInicio} - ${periodo.fechaFin}
+                                Subperiodo: ${subp.fechaInicio} - ${subp.fechaFin}
                                 <br>
-                                Edad: ${periodo.edad} años
+                                Edad: ${subp.edad} años
                             </p>
                     `;
                     
-                    if (periodo.subperiodos && periodo.subperiodos.length > 0) {
-                        periodo.subperiodos.forEach(subp => {
+                    if (subp.subperiodos && subp.subperiodos.length > 0) {
+                        subp.subperiodos.forEach(subsubp => {
                             html += `
-                                <div class="relevo-subperiodo ${subp.elemento.toLowerCase()}">
+                                <div class="relevo-subsubperiodo ${subsubp.elemento.toLowerCase()}">
                                     <h6>
-                                        ${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - Nivel ${subp.nivel}
-                                        <small class="text-muted">(Elemento: ${subp.elemento}, Regente: ${subp.regente})</small>
+                                        ${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - Nivel 3
+                                        <small class="text-muted">(Elemento: ${subsubp.elemento}, Regente: ${subsubp.regente})</small>
                                     </h6>
                                     <p>
-                                        Subperiodo: ${subp.fechaInicio} - ${subp.fechaFin}
+                                        Sub-subperiodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
                                         <br>
-                                        Edad: ${subp.edad} años
+                                        Edad: ${subsubp.edad} años
                                     </p>
                             `;
                             
-                            if (subp.subperiodos && subp.subperiodos.length > 0) {
-                                subp.subperiodos.forEach(subsubp => {
+                            // AÑADIR NIVEL 4 - Este es el cambio principal
+                            if (subsubp.subperiodos && subsubp.subperiodos.length > 0) {
+                                subsubp.subperiodos.forEach(subsubsubp => {
                                     html += `
-                                        <div class="relevo-subsubperiodo ${subsubp.elemento.toLowerCase()}">
+                                        <div class="relevo-subsubsubperiodo ${subsubsubp.elemento.toLowerCase()}">
                                             <h6>
-                                                ${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - Nivel ${subsubp.nivel}
-                                                <small class="text-muted">(Elemento: ${subsubp.elemento}, Regente: ${subsubp.regente})</small>
+                                                ${subsubsubp.signo.charAt(0).toUpperCase() + subsubsubp.signo.slice(1)} - Nivel 4
+                                                <small class="text-muted">(Elemento: ${subsubsubp.elemento}, Regente: ${subsubsubp.regente})</small>
                                             </h6>
                                             <p>
-                                                Sub-subperiodo: ${subsubp.fechaInicio} - ${subsubp.fechaFin}
+                                                Sub-sub-subperiodo: ${subsubsubp.fechaInicio} - ${subsubsubp.fechaFin}
                                                 <br>
-                                                Edad: ${subsubp.edad} años
+                                                Edad: ${subsubsubp.edad} años
                                             </p>
                                         </div>
                                     `;
@@ -2444,208 +2459,264 @@
                     
                     html += `</div>`;
                 });
-                
-                relevoZodiacalContainer.innerHTML = html;
-                console.log("Relevo Zodiacal mostrado correctamente");
-                
-            } catch (error) {
-                console.error("Error calculando Relevo Zodiacal:", error);
-                relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error al calcular el relevo zodiacal: ${error.message}</div>`;
             }
-        }
+            
+            html += `</div>`;
+        });
         
-        // Función auxiliar para calcular el relevo zodiacal
-        function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
-            // Convertir fechas a objetos Date
-            const fechaNac = new Date(birthDate);
-            const fechaTransito = new Date(transitDate);
+        relevoZodiacalContainer.innerHTML = html;
+        console.log("Relevo Zodiacal mostrado correctamente");
+        
+    } catch (error) {
+        console.error("Error calculando Relevo Zodiacal:", error);
+        relevoZodiacalContainer.innerHTML = `<div class="alert alert-danger">Error al calcular el relevo zodiacal: ${error.message}</div>`;
+    }
+}
+        
+function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
+    // Convertir fechas a objetos Date
+    const fechaNac = new Date(birthDate);
+    const fechaTransito = new Date(transitDate);
+    
+    // Generar secuencia de signos a partir del ascendente
+    const secuencia = generarSecuencia(ascendente);
+    console.log("Secuencia de signos generada:", secuencia);
+    
+    // Periodos activos para la fecha de tránsito
+    const periodosActivos = [];
+    let diaActual = 0;
+    
+    // Mapeo de elementos para signos
+    const elementosSignos = {
+        'aries': 'Fuego',
+        'leo': 'Fuego',
+        'sagitario': 'Fuego',
+        'tauro': 'Tierra',
+        'virgo': 'Tierra',
+        'capricornio': 'Tierra',
+        'geminis': 'Aire',
+        'libra': 'Aire',
+        'acuario': 'Aire',
+        'ofiuco': 'Aire',
+        'cancer': 'Agua',
+        'escorpio': 'Agua',
+        'piscis': 'Agua'
+    };
+    
+    // Regentes planetarios para cada signo
+    const regentesSignos = {
+        'aries': 'Marte',
+        'tauro': 'Venus',
+        'geminis': 'Mercurio',
+        'cancer': 'Luna',
+        'leo': 'Sol',
+        'virgo': 'Mercurio',
+        'libra': 'Venus',
+        'escorpio': 'Marte',
+        'ofiuco': 'Saturno',
+        'sagitario': 'Júpiter',
+        'capricornio': 'Sol',
+        'acuario': 'Luna',
+        'piscis': 'Júpiter'
+    };
+    
+    // Para cada signo en la secuencia, calcular su periodo
+    for (let i = 0; i < secuencia.length; i++) {
+        const signo = secuencia[i];
+        const anios = DURACION_POR_NIVEL[signo];
+        const diasEnPeriodo = anios * DURACIONES.AÑO;
+        
+        // Calcular fecha de inicio y fin del periodo
+        const fechaInicio = new Date(fechaNac);
+        fechaInicio.setDate(fechaInicio.getDate() + diaActual);
+        
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaInicio.getDate() + diasEnPeriodo);
+        
+        // Comprobar si la fecha de tránsito está dentro de este periodo
+        if (fechaTransito >= fechaInicio && fechaTransito <= fechaFin) {
+            // Calcular edad para este periodo
+            const edad = calcularEdad(fechaNac, fechaInicio);
             
-            // Generar secuencia de signos a partir del ascendente
-            const secuencia = generarSecuencia(ascendente);
-            console.log("Secuencia de signos generada:", secuencia);
-            
-            // Periodos activos para la fecha de tránsito
-            const periodosActivos = [];
-            let diaActual = 0;
-            
-            // Mapeo de elementos para signos
-            const elementosSignos = {
-                'aries': 'Fuego',
-                'leo': 'Fuego',
-                'sagitario': 'Fuego',
-                'tauro': 'Tierra',
-                'virgo': 'Tierra',
-                'capricornio': 'Tierra',
-                'geminis': 'Aire',
-                'libra': 'Aire',
-                'acuario': 'Aire',
-                'ofiuco': 'Aire',
-                'cancer': 'Agua',
-                'escorpio': 'Agua',
-                'piscis': 'Agua'
+            // Crear objeto de periodo principal
+            const periodo = {
+                signo: signo,
+                nivel: 1,
+                fechaInicio: fechaInicio.toLocaleDateString('es-ES'),
+                fechaFin: fechaFin.toLocaleDateString('es-ES'),
+                edad: edad,
+                regente: regentesSignos[signo] || 'Desconocido',
+                elemento: elementosSignos[signo] || 'Neutral',
+                subperiodos: []
             };
             
-            // Regentes planetarios para cada signo
-            const regentesSignos = {
-                'aries': 'Marte',
-                'tauro': 'Venus',
-                'geminis': 'Mercurio',
-                'cancer': 'Luna',
-                'leo': 'Sol',
-                'virgo': 'Mercurio',
-                'libra': 'Venus',
-                'escorpio': 'Marte',
-                'ofiuco': 'Saturno',
-                'sagitario': 'Júpiter',
-                'capricornio': 'Sol',
-                'acuario': 'Luna',
-                'piscis': 'Júpiter'
-            };
+            // Calcular subperiodos (meses)
+            const subSecuencia = generarSecuencia(signo);
+            let diaInicioSub = diaActual;
             
-            // Para cada signo en la secuencia, calcular su periodo
-            for (let i = 0; i < secuencia.length; i++) {
-                const signo = secuencia[i];
-                const anios = DURACION_POR_NIVEL[signo];
-                const diasEnPeriodo = anios * DURACIONES.AÑO;
+            for (let j = 0; j < subSecuencia.length; j++) {
+                const subSigno = subSecuencia[j];
+                const meses = DURACION_POR_NIVEL[subSigno];
+                const diasEnSubperiodo = meses * DURACIONES.MES;
                 
-                // Calcular fecha de inicio y fin del periodo
-                const fechaInicio = new Date(fechaNac);
-                fechaInicio.setDate(fechaInicio.getDate() + diaActual);
+                // Calcular fecha de inicio y fin del subperiodo
+                const fechaInicioSub = new Date(fechaNac);
+                fechaInicioSub.setDate(fechaInicioSub.getDate() + diaInicioSub);
                 
-                const fechaFin = new Date(fechaInicio);
-                fechaFin.setDate(fechaInicio.getDate() + diasEnPeriodo);
+                const fechaFinSub = new Date(fechaInicioSub);
+                fechaFinSub.setDate(fechaInicioSub.getDate() + diasEnSubperiodo);
                 
-                // Comprobar si la fecha de tránsito está dentro de este periodo
-                if (fechaTransito >= fechaInicio && fechaTransito <= fechaFin) {
-                    // Calcular edad para este periodo
-                    const edad = calcularEdad(fechaNac, fechaInicio);
+                // Asegurarse de que no exceda la fecha fin del periodo principal
+                if (fechaFinSub > fechaFin) {
+                    fechaFinSub.setTime(fechaFin.getTime());
+                }
+                
+                // Comprobar si la fecha de tránsito está dentro de este subperiodo
+                if (fechaTransito >= fechaInicioSub && fechaTransito <= fechaFinSub) {
+                    // Calcular edad para este subperiodo
+                    const edadSub = calcularEdad(fechaNac, fechaInicioSub);
                     
-                    // Crear objeto de periodo principal
-                    const periodo = {
-                        signo: signo,
-                        nivel: 1,
-                        fechaInicio: fechaInicio.toLocaleDateString('es-ES'),
-                        fechaFin: fechaFin.toLocaleDateString('es-ES'),
-                        edad: edad,
-                        regente: regentesSignos[signo] || 'Desconocido',
-                        elemento: elementosSignos[signo] || 'Neutral',
+                    // Crear objeto de subperiodo
+                    const subperiodo = {
+                        signo: subSigno,
+                        nivel: 2,
+                        fechaInicio: fechaInicioSub.toLocaleDateString('es-ES'),
+                        fechaFin: fechaFinSub.toLocaleDateString('es-ES'),
+                        edad: edadSub,
+                        regente: regentesSignos[subSigno] || 'Desconocido',
+                        elemento: elementosSignos[subSigno] || 'Neutral',
                         subperiodos: []
                     };
                     
-                    // Calcular subperiodos (meses)
-                    const subSecuencia = generarSecuencia(signo);
-                    let diaInicioSub = diaActual;
+                    // Calcular sub-subperiodos (semanas)
+                    const subSubSecuencia = generarSecuencia(subSigno);
+                    let diaInicioSubSub = diaInicioSub;
                     
-                    for (let j = 0; j < subSecuencia.length; j++) {
-                        const subSigno = subSecuencia[j];
-                        const meses = DURACION_POR_NIVEL[subSigno];
-                        const diasEnSubperiodo = meses * DURACIONES.MES;
+                    for (let k = 0; k < subSubSecuencia.length; k++) {
+                        const subSubSigno = subSubSecuencia[k];
+                        const semanas = DURACION_POR_NIVEL[subSubSigno];
+                        const diasEnSubSubperiodo = semanas * DURACIONES.SEMANA;
                         
-                        // Calcular fecha de inicio y fin del subperiodo
-                        const fechaInicioSub = new Date(fechaNac);
-                        fechaInicioSub.setDate(fechaInicioSub.getDate() + diaInicioSub);
+                        // Calcular fecha de inicio y fin del sub-subperiodo
+                        const fechaInicioSubSub = new Date(fechaNac);
+                        fechaInicioSubSub.setDate(fechaInicioSubSub.getDate() + diaInicioSubSub);
                         
-                        const fechaFinSub = new Date(fechaInicioSub);
-                        fechaFinSub.setDate(fechaInicioSub.getDate() + diasEnSubperiodo);
+                        const fechaFinSubSub = new Date(fechaInicioSubSub);
+                        fechaFinSubSub.setDate(fechaInicioSubSub.getDate() + diasEnSubSubperiodo);
                         
-                        // Asegurarse de que no exceda la fecha fin del periodo principal
-                        if (fechaFinSub > fechaFin) {
-                            fechaFinSub.setTime(fechaFin.getTime());
+                        // Asegurarse de que no exceda la fecha fin del subperiodo
+                        if (fechaFinSubSub > fechaFinSub) {
+                            fechaFinSubSub.setTime(fechaFinSub.getTime());
                         }
                         
-                        // Comprobar si la fecha de tránsito está dentro de este subperiodo
-                        if (fechaTransito >= fechaInicioSub && fechaTransito <= fechaFinSub) {
-                            // Calcular edad para este subperiodo
-                            const edadSub = calcularEdad(fechaNac, fechaInicioSub);
+                        // Comprobar si la fecha de tránsito está dentro de este sub-subperiodo
+                        if (fechaTransito >= fechaInicioSubSub && fechaTransito <= fechaFinSubSub) {
+                            // Calcular edad para este sub-subperiodo
+                            const edadSubSub = calcularEdad(fechaNac, fechaInicioSubSub);
                             
-                            // Crear objeto de subperiodo
-                            const subperiodo = {
-                                signo: subSigno,
-                                nivel: 2,
-                                fechaInicio: fechaInicioSub.toLocaleDateString('es-ES'),
-                                fechaFin: fechaFinSub.toLocaleDateString('es-ES'),
-                                edad: edadSub,
-                                regente: regentesSignos[subSigno] || 'Desconocido',
-                                elemento: elementosSignos[subSigno] || 'Neutral',
+                            // Crear objeto de sub-subperiodo
+                            const subSubperiodo = {
+                                signo: subSubSigno,
+                                nivel: 3,
+                                fechaInicio: fechaInicioSubSub.toLocaleDateString('es-ES'),
+                                fechaFin: fechaFinSubSub.toLocaleDateString('es-ES'),
+                                edad: edadSubSub,
+                                regente: regentesSignos[subSubSigno] || 'Desconocido',
+                                elemento: elementosSignos[subSubSigno] || 'Neutral',
                                 subperiodos: []
                             };
                             
-                            // Calcular sub-subperiodos (semanas)
-                            const subSubSecuencia = generarSecuencia(subSigno);
-                            let diaInicioSubSub = diaInicioSub;
+                            // NIVEL 4 - AÑADIR AQUÍ
+                            // Calcular sub-sub-subperiodos (días)
+                            const subSubSubSecuencia = generarSecuencia(subSubSigno);
+                            let diaInicioSubSubSub = diaInicioSubSub;
                             
-                            for (let k = 0; k < subSubSecuencia.length; k++) {
-                                const subSubSigno = subSubSecuencia[k];
-                                const semanas = DURACION_POR_NIVEL[subSubSigno];
-                                const diasEnSubSubperiodo = semanas * DURACIONES.SEMANA;
+                            for (let l = 0; l < subSubSubSecuencia.length; l++) {
+                                const subSubSubSigno = subSubSubSecuencia[l];
+                                const dias = DURACION_POR_NIVEL[subSubSubSigno];
+                                const diasEnSubSubSubperiodo = dias * DURACIONES.DIA;
                                 
-                                // Calcular fecha de inicio y fin del sub-subperiodo
-                                const fechaInicioSubSub = new Date(fechaNac);
-                                fechaInicioSubSub.setDate(fechaInicioSubSub.getDate() + diaInicioSubSub);
+                                // Calcular fecha de inicio y fin para el nivel 4
+                                const fechaInicioSubSubSub = new Date(fechaNac);
+                                fechaInicioSubSubSub.setDate(fechaInicioSubSubSub.getDate() + diaInicioSubSubSub);
                                 
-                                const fechaFinSubSub = new Date(fechaInicioSubSub);
-                                fechaFinSubSub.setDate(fechaInicioSubSub.getDate() + diasEnSubSubperiodo);
+                                const fechaFinSubSubSub = new Date(fechaInicioSubSubSub);
+                                fechaFinSubSubSub.setDate(fechaInicioSubSubSub.getDate() + diasEnSubSubSubperiodo);
                                 
-                                // Asegurarse de que no exceda la fecha fin del subperiodo
-                                if (fechaFinSubSub > fechaFinSub) {
-                                    fechaFinSubSub.setTime(fechaFinSub.getTime());
+                                // Asegurarse de que no exceda la fecha fin del sub-subperiodo
+                                if (fechaFinSubSubSub > fechaFinSubSub) {
+                                    fechaFinSubSubSub.setTime(fechaFinSubSub.getTime());
                                 }
                                 
-                                // Comprobar si la fecha de tránsito está dentro de este sub-subperiodo
-                                if (fechaTransito >= fechaInicioSubSub && fechaTransito <= fechaFinSubSub) {
-                                    // Calcular edad para este sub-subperiodo
-                                    const edadSubSub = calcularEdad(fechaNac, fechaInicioSubSub);
+                                // Comprobar si la fecha actual está dentro de este sub-sub-subperiodo
+                                if (fechaTransito >= fechaInicioSubSubSub && fechaTransito <= fechaFinSubSubSub) {
+                                    // Calcular edad para este sub-sub-subperiodo
+                                    const edadSubSubSub = calcularEdad(fechaNac, fechaInicioSubSubSub);
                                     
-                                    // Crear objeto de sub-subperiodo
-                                    const subSubperiodo = {
-                                        signo: subSubSigno,
-                                        nivel: 3,
-                                        fechaInicio: fechaInicioSubSub.toLocaleDateString('es-ES'),
-                                        fechaFin: fechaFinSubSub.toLocaleDateString('es-ES'),
-                                        edad: edadSubSub,
-                                        regente: regentesSignos[subSubSigno] || 'Desconocido',
-                                        elemento: elementosSignos[subSubSigno] || 'Neutral'
+                                    // Crear objeto de nivel 4
+                                    const subSubSubperiodo = {
+                                        signo: subSubSubSigno,
+                                        nivel: 4,
+                                        fechaInicio: fechaInicioSubSubSub.toLocaleDateString('es-ES'),
+                                        fechaFin: fechaFinSubSubSub.toLocaleDateString('es-ES'),
+                                        edad: edadSubSubSub,
+                                        regente: regentesSignos[subSubSubSigno] || 'Desconocido',
+                                        elemento: elementosSignos[subSubSubSigno] || 'Neutral'
                                     };
                                     
-                                    // Añadir sub-subperiodo al subperiodo
-                                    subperiodo.subperiodos.push(subSubperiodo);
+                                    // Añadir a los sub-subperiodos
+                                    subSubperiodo.subperiodos.push(subSubSubperiodo);
                                 }
                                 
-                                // Avanzar el día de inicio para el siguiente sub-subperiodo
-                                diaInicioSubSub += diasEnSubSubperiodo;
+                                // Avanzar al siguiente día
+                                diaInicioSubSubSub += diasEnSubSubSubperiodo;
                                 
-                                // Si hemos sobrepasado el fin del subperiodo, salir del bucle
-                                if (diaInicioSubSub >= diaInicioSub + diasEnSubperiodo || 
-                                    new Date(fechaNac.getTime() + diaInicioSubSub * 24 * 60 * 60 * 1000) > fechaFinSub) {
+                                // Si hemos sobrepasado el fin del sub-subperiodo, salir del bucle
+                                if (diaInicioSubSubSub >= diaInicioSubSub + diasEnSubSubperiodo || 
+                                    new Date(fechaNac.getTime() + diaInicioSubSubSub * 24 * 60 * 60 * 1000) > fechaFinSubSub) {
                                     break;
                                 }
                             }
+                            // FIN DE NIVEL 4
                             
                             // Añadir subperiodo al periodo principal
-                            periodo.subperiodos.push(subperiodo);
+                            subperiodo.subperiodos.push(subSubperiodo);
                         }
                         
-                        // Avanzar el día de inicio para el siguiente subperiodo
-                        diaInicioSub += diasEnSubperiodo;
+                        // Avanzar el día de inicio para el siguiente sub-subperiodo
+                        diaInicioSubSub += diasEnSubSubperiodo;
                         
-                        // Si hemos sobrepasado el fin del periodo principal, salir del bucle
-                        if (diaInicioSub >= diaActual + diasEnPeriodo || 
-                            new Date(fechaNac.getTime() + diaInicioSub * 24 * 60 * 60 * 1000) > fechaFin) {
+                        // Si hemos sobrepasado el fin del subperiodo, salir del bucle
+                        if (diaInicioSubSub >= diaInicioSub + diasEnSubperiodo || 
+                            new Date(fechaNac.getTime() + diaInicioSubSub * 24 * 60 * 60 * 1000) > fechaFinSub) {
                             break;
                         }
                     }
                     
-                    // Añadir el periodo a la lista de periodos activos
-                    periodosActivos.push(periodo);
+                    // Añadir subperiodo al periodo principal
+                    periodo.subperiodos.push(subperiodo);
                 }
                 
-                // Avanzar al siguiente periodo principal
-                diaActual += diasEnPeriodo;
+                // Avanzar el día de inicio para el siguiente subperiodo
+                diaInicioSub += diasEnSubperiodo;
+                
+                // Si hemos sobrepasado el fin del periodo principal, salir del bucle
+                if (diaInicioSub >= diaActual + diasEnPeriodo || 
+                    new Date(fechaNac.getTime() + diaInicioSub * 24 * 60 * 60 * 1000) > fechaFin) {
+                    break;
+                }
             }
             
-            return periodosActivos;
+            // Añadir el periodo a la lista de periodos activos
+            periodosActivos.push(periodo);
         }
-
+        
+        // Avanzar al siguiente periodo principal
+        diaActual += diasEnPeriodo;
+    }
+    
+    return periodosActivos;
+}
         // Calcular edad de una persona en una fecha específica
         function calcularEdad(fechaNac, fechaActual) {
             const nac = new Date(fechaNac);
