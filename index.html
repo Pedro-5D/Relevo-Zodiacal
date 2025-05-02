@@ -2071,171 +2071,175 @@
         }
 
         // Función para actualizar información avanzada
-        function updateAdvancedInfo() {
-            // Solo actualizar si calculateAnalysis está activado
-            if (!calculateAnalysisToggle.checked) {
-                enlacesPlanetariosContainer.innerHTML = '<p>Activa "Análisis Avanzado" para ver esta información.</p>';
-                picoMayorContainer.innerHTML = '';
-                picoModeradoContainer.innerHTML = '';
-                picoMenorContainer.innerHTML = '';
-                liberacionEnlaceContainer.innerHTML = '';
-                presagiosContainer.innerHTML = '';
-                return;
-            }
+function updateAdvancedInfo() {
+    // Solo actualizar si calculateAnalysis está activado
+    if (!calculateAnalysisToggle.checked) {
+        enlacesPlanetariosContainer.innerHTML = '<p>Activa "Análisis Avanzado" para ver esta información.</p>';
+        picoMayorContainer.innerHTML = '';
+        picoModeradoContainer.innerHTML = '';
+        picoMenorContainer.innerHTML = '';
+        liberacionEnlaceContainer.innerHTML = '';
+        presagiosContainer.innerHTML = '';
+        relevoZodiacalContainer.innerHTML = '<p>Activa "Análisis Avanzado" para ver esta información.</p>';
+        return;
+    }
+    
+    // Enlaces planetarios
+    enlacesPlanetariosContainer.innerHTML = '';
+    if (enlaces && enlaces.length > 0) {
+        enlaces.forEach(enlace => {
+            const enlaceItem = document.createElement('div');
             
-            // Enlaces planetarios
-            enlacesPlanetariosContainer.innerHTML = '';
-            if (enlaces && enlaces.length > 0) {
-                enlaces.forEach(enlace => {
-                    const enlaceItem = document.createElement('div');
-                    
-                    // Determinar clase de fuerza
-                    let fuerzaClass = 'enlace-medio';
-                    if (enlace.fuerza >= 8) fuerzaClass = 'enlace-fuerte';
-                    else if (enlace.fuerza <= 3) fuerzaClass = 'enlace-debil';
-                    
-                    enlaceItem.className = `enlace-item ${fuerzaClass}`;
-                    
-                    enlaceItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[enlace.planeta1] || enlace.planeta1}</strong> →
-                        <strong>${PLANET_SYMBOLS[enlace.planeta2] || enlace.planeta2}</strong>
-                        (Fuerza: ${enlace.fuerza})
-                        ${enlace.disolucion ? '<span class="badge bg-warning">Disuelto</span>' : ''}
-                    `;
-                    
-                    enlacesPlanetariosContainer.appendChild(enlaceItem);
-                });
-            } else {
-                enlacesPlanetariosContainer.innerHTML = '<p>No hay enlaces planetarios significativos.</p>';
-            }
+            // Determinar clase de fuerza
+            let fuerzaClass = 'enlace-medio';
+            if (enlace.fuerza >= 8) fuerzaClass = 'enlace-fuerte';
+            else if (enlace.fuerza <= 3) fuerzaClass = 'enlace-debil';
             
-            // Picos
-            picoMayorContainer.innerHTML = '';
-            if (window.pico_mayor && window.pico_mayor.length > 0) {
-                window.pico_mayor.forEach(pico => {
-                    const picoItem = document.createElement('div');
-                    picoItem.className = 'pico-item';
-                    
-                    picoItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[pico.planeta] || pico.planeta}</strong>
-                        en ${pico.signo} con fuerza ${pico.fuerza}
-                        ${pico.planetas_aspectados ? `<br>Aspectos favorables con: ${pico.planetas_aspectados.join(', ')}` : ''}
-                    `;
-                    
-                    picoMayorContainer.appendChild(picoItem);
-                });
-            } else {
-                picoMayorContainer.innerHTML = '<p>No hay picos mayores.</p>';
-            }
+            enlaceItem.className = `enlace-item ${fuerzaClass}`;
             
-            // Repetir similar para pico moderado y menor
-            picoModeradoContainer.innerHTML = '';
-            if (window.pico_moderado && window.pico_moderado.length > 0) {
-                // Similar a picoMayor
-                window.pico_moderado.forEach(pico => {
-                    const picoItem = document.createElement('div');
-                    picoItem.className = 'pico-item';
-                    
-                    picoItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[pico.planeta] || pico.planeta}</strong>
-                        en ${pico.signo} con fuerza ${pico.fuerza}
-                        ${pico.planetas_aspectados ? `<br>Aspectos favorables con: ${pico.planetas_aspectados.join(', ')}` : ''}
-                    `;
-                    
-                    picoModeradoContainer.appendChild(picoItem);
-                });
-            } else {
-                picoModeradoContainer.innerHTML = '<p>No hay picos moderados.</p>';
-            }
+            enlaceItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[enlace.planeta1] || enlace.planeta1}</strong> →
+                <strong>${PLANET_SYMBOLS[enlace.planeta2] || enlace.planeta2}</strong>
+                (Fuerza: ${enlace.fuerza})
+                ${enlace.disolucion ? '<span class="badge bg-warning">Disuelto</span>' : ''}
+            `;
             
-            picoMenorContainer.innerHTML = '';
-            if (window.pico_menor && window.pico_menor.length > 0) {
-                // Similar a picoMayor
-                window.pico_menor.forEach(pico => {
-                    const picoItem = document.createElement('div');
-                    picoItem.className = 'pico-item';
-                    
-                    picoItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[pico.planeta] || pico.planeta}</strong>
-                        en ${pico.signo} con fuerza ${pico.fuerza}
-                        ${pico.planetas_aspectados ? `<br>Aspectos favorables con: ${pico.planetas_aspectados.join(', ')}` : ''}
-                    `;
-                    
-                    picoMenorContainer.appendChild(picoItem);
-                });
-            } else {
-                picoMenorContainer.innerHTML = '<p>No hay picos menores.</p>';
-            }
+            enlacesPlanetariosContainer.appendChild(enlaceItem);
+        });
+    } else {
+        enlacesPlanetariosContainer.innerHTML = '<p>No hay enlaces planetarios significativos.</p>';
+    }
+    
+    // Picos
+    picoMayorContainer.innerHTML = '';
+    if (window.pico_mayor && window.pico_mayor.length > 0) {
+        window.pico_mayor.forEach(pico => {
+            const picoItem = document.createElement('div');
+            picoItem.className = 'pico-item';
             
-            // Liberación de enlace
-            liberacionEnlaceContainer.innerHTML = '';
-            if (window.liberacion_enlace && window.liberacion_enlace.length > 0) {
-                window.liberacion_enlace.forEach(liberacion => {
-                    const libItem = document.createElement('div');
-                    libItem.className = 'enlace-item enlace-fuerte';
-                    
-                    libItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[liberacion.planeta_liberador] || liberacion.planeta_liberador}</strong>
-                        libera a
-                        <strong>${PLANET_SYMBOLS[liberacion.planeta_liberado] || liberacion.planeta_liberado}</strong>
-                        mediante ${liberacion.condicion}
-                    `;
-                    
-                    liberacionEnlaceContainer.appendChild(libItem);
-                });
-            } else {
-                liberacionEnlaceContainer.innerHTML = '<p>No hay liberaciones de enlace.</p>';
-            }
+            picoItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[pico.planeta] || pico.planeta}</strong>
+                en ${pico.signo} con fuerza ${pico.fuerza}
+                ${pico.planetas_aspectados ? `<br>Aspectos favorables con: ${pico.planetas_aspectados.join(', ')}` : ''}
+            `;
             
-            // Presagios
-            presagiosContainer.innerHTML = '';
-            let hasPresagios = false;
+            picoMayorContainer.appendChild(picoItem);
+        });
+    } else {
+        picoMayorContainer.innerHTML = '<p>No hay picos mayores.</p>';
+    }
+    
+    // Repetir similar para pico moderado y menor
+    picoModeradoContainer.innerHTML = '';
+    if (window.pico_moderado && window.pico_moderado.length > 0) {
+        // Similar a picoMayor
+        window.pico_moderado.forEach(pico => {
+            const picoItem = document.createElement('div');
+            picoItem.className = 'pico-item';
             
-            if (window.presagios?.buenos && window.presagios.buenos.length > 0) {
-                hasPresagios = true;
-                const presagiosBuenosTitle = document.createElement('h5');
-                presagiosBuenosTitle.textContent = 'Presagios Favorables';
-                presagiosContainer.appendChild(presagiosBuenosTitle);
-                
-                window.presagios.buenos.forEach(presagio => {
-                    const presItem = document.createElement('div');
-                    presItem.className = 'enlace-item enlace-fuerte';
-                    
-                    presItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[presagio.planeta] || presagio.planeta}</strong>
-                        en ${presagio.signo}
-                        ${presagio.aspectos ? `con aspectos favorables` : ''}
-                    `;
-                    
-                    presagiosContainer.appendChild(presItem);
-                });
-            }
+            picoItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[pico.planeta] || pico.planeta}</strong>
+                en ${pico.signo} con fuerza ${pico.fuerza}
+                ${pico.planetas_aspectados ? `<br>Aspectos favorables con: ${pico.planetas_aspectados.join(', ')}` : ''}
+            `;
             
-            if (window.presagios?.malos && window.presagios.malos.length > 0) {
-                hasPresagios = true;
-                const presagiosMalosTitle = document.createElement('h5');
-                presagiosMalosTitle.textContent = 'Presagios Desfavorables';
-                presagiosMalosTitle.className = 'mt-3';
-                presagiosContainer.appendChild(presagiosMalosTitle);
-                
-                window.presagios.malos.forEach(presagio => {
-                    const presItem = document.createElement('div');
-                    presItem.className = 'enlace-item enlace-debil';
-                    
-                    presItem.innerHTML = `
-                        <strong>${PLANET_SYMBOLS[presagio.planeta] || presagio.planeta}</strong>
-                        en ${presagio.signo}
-                        ${presagio.aspectos ? `con aspectos desfavorables` : ''}
-                    `;
-                    
-                    presagiosContainer.appendChild(presItem);
-                });
-            }
+            picoModeradoContainer.appendChild(picoItem);
+        });
+    } else {
+        picoModeradoContainer.innerHTML = '<p>No hay picos moderados.</p>';
+    }
+    
+    picoMenorContainer.innerHTML = '';
+    if (window.pico_menor && window.pico_menor.length > 0) {
+        // Similar a picoMayor
+        window.pico_menor.forEach(pico => {
+            const picoItem = document.createElement('div');
+            picoItem.className = 'pico-item';
             
-            if (!hasPresagios) {
-                presagiosContainer.innerHTML = '<p>No hay presagios significativos.</p>';
-            }
-        }
+            picoItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[pico.planeta] || pico.planeta}</strong>
+                en ${pico.signo} con fuerza ${pico.fuerza}
+                ${pico.planetas_aspectados ? `<br>Aspectos favorables con: ${pico.planetas_aspectados.join(', ')}` : ''}
+            `;
+            
+            picoMenorContainer.appendChild(picoItem);
+        });
+    } else {
+        picoMenorContainer.innerHTML = '<p>No hay picos menores.</p>';
+    }
+    
+    // Liberación de enlace
+    liberacionEnlaceContainer.innerHTML = '';
+    if (window.liberacion_enlace && window.liberacion_enlace.length > 0) {
+        window.liberacion_enlace.forEach(liberacion => {
+            const libItem = document.createElement('div');
+            libItem.className = 'enlace-item enlace-fuerte';
+            
+            libItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[liberacion.planeta_liberador] || liberacion.planeta_liberador}</strong>
+                libera a
+                <strong>${PLANET_SYMBOLS[liberacion.planeta_liberado] || liberacion.planeta_liberado}</strong>
+                mediante ${liberacion.condicion}
+            `;
+            
+            liberacionEnlaceContainer.appendChild(libItem);
+        });
+    } else {
+        liberacionEnlaceContainer.innerHTML = '<p>No hay liberaciones de enlace.</p>';
+    }
+    
+    // Presagios
+    presagiosContainer.innerHTML = '';
+    let hasPresagios = false;
+    
+    if (window.presagios?.buenos && window.presagios.buenos.length > 0) {
+        hasPresagios = true;
+        const presagiosBuenosTitle = document.createElement('h5');
+        presagiosBuenosTitle.textContent = 'Presagios Favorables';
+        presagiosContainer.appendChild(presagiosBuenosTitle);
+        
+        window.presagios.buenos.forEach(presagio => {
+            const presItem = document.createElement('div');
+            presItem.className = 'enlace-item enlace-fuerte';
+            
+            presItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[presagio.planeta] || presagio.planeta}</strong>
+                en ${presagio.signo}
+                ${presagio.aspectos ? `con aspectos favorables` : ''}
+            `;
+            
+            presagiosContainer.appendChild(presItem);
+        });
+    }
+    
+    if (window.presagios?.malos && window.presagios.malos.length > 0) {
+        hasPresagios = true;
+        const presagiosMalosTitle = document.createElement('h5');
+        presagiosMalosTitle.textContent = 'Presagios Desfavorables';
+        presagiosMalosTitle.className = 'mt-3';
+        presagiosContainer.appendChild(presagiosMalosTitle);
+        
+        window.presagios.malos.forEach(presagio => {
+            const presItem = document.createElement('div');
+            presItem.className = 'enlace-item enlace-debil';
+            
+            presItem.innerHTML = `
+                <strong>${PLANET_SYMBOLS[presagio.planeta] || presagio.planeta}</strong>
+                en ${presagio.signo}
+                ${presagio.aspectos ? `con aspectos desfavorables` : ''}
+            `;
+            
+            presagiosContainer.appendChild(presItem);
+        });
+    }
+    
+    if (!hasPresagios) {
+        presagiosContainer.innerHTML = '<p>No hay presagios significativos.</p>';
+    }
+
+    // Calcular automáticamente el Relevo Zodiacal
+    calcularYMostrarRelevoZodiacal();
+}
 
         // Función para seleccionar un planeta
         function selectPlanet(planet, isNatal) {
@@ -2331,16 +2335,18 @@
             return signos.slice(pos).concat(signos.slice(0, pos));
         }
 
-// Reemplaza la función calcularYMostrarRelevoZodiacal con esta versión mejorada:
-
+// 4. Mejora de la función calcularYMostrarRelevoZodiacal para que funcione automáticamente
 function calcularYMostrarRelevoZodiacal() {
-    console.log("Calculando y mostrando Relevo Zodiacal");
+    console.log("Calculando y mostrando Relevo Zodiacal automáticamente");
     
     // Verificar que existe el contenedor
     if (!relevoZodiacalContainer) {
         console.error("No se encontró el contenedor de Relevo Zodiacal");
         return;
     }
+    
+    // Mostrar mensaje de carga
+    relevoZodiacalContainer.innerHTML = '<div class="alert alert-info">Calculando relevo zodiacal...</div>';
     
     // Verificar si tenemos los datos necesarios (natal planets y ascendente)
     if (!natalPlanets || natalPlanets.length === 0) {
@@ -2370,27 +2376,28 @@ function calcularYMostrarRelevoZodiacal() {
     
     console.log("Calculando Relevo para:", ascPlanet.sign);
     
-    // Mostrar mensaje de carga
-    relevoZodiacalContainer.innerHTML = '<div class="alert alert-info">Calculando relevo zodiacal...</div>';
-    
     try {
-        // Calcular periodos de Relevo Zodiacal manualmente
-        const periodosActivos = calcularRelevoZodiacalManual(birthDate, ascPlanet.sign, transitDate);
+        // Calcular periodos de Relevo Zodiacal
+        const periodosActivos = calcularRelevoZodiacal(birthDate, ascPlanet.sign, transitDate);
         
         if (!periodosActivos || periodosActivos.length === 0) {
             relevoZodiacalContainer.innerHTML = '<div class="alert alert-warning">No se encontraron periodos activos para la fecha seleccionada.</div>';
             return;
         }
         
-        // Generar HTML para mostrar los periodos
+        // Generar HTML para mostrar los periodos (CON 4 NIVELES)
         let html = '';
         
         periodosActivos.forEach(periodo => {
-            // Determinar clase CSS para elemento
-            const elementoClass = periodo.elemento ? periodo.elemento.toLowerCase() : 'neutral';
+            // Obtener información del elemento del signo
+            let elementoInfo = ELEMENTOS_SIGNOS[SIGNOS_NORMALIZADOS[periodo.signo]] || {
+                elemento: 'Neutral',
+                color: '#f8f9fa',
+                borde: '#6c757d'
+            };
             
             html += `
-                <div class="relevo-periodo ${elementoClass}">
+                <div class="relevo-periodo ${periodo.elemento.toLowerCase()}">
                     <h5>
                         ${periodo.signo.charAt(0).toUpperCase() + periodo.signo.slice(1)} - Nivel 1
                         <small class="text-muted">(Elemento: ${periodo.elemento}, Regente: ${periodo.regente})</small>
@@ -2404,11 +2411,8 @@ function calcularYMostrarRelevoZodiacal() {
             
             if (periodo.subperiodos && periodo.subperiodos.length > 0) {
                 periodo.subperiodos.forEach(subp => {
-                    // Determinar clase CSS para elemento
-                    const subElementoClass = subp.elemento ? subp.elemento.toLowerCase() : 'neutral';
-                    
                     html += `
-                        <div class="relevo-subperiodo ${subElementoClass}">
+                        <div class="relevo-subperiodo ${subp.elemento.toLowerCase()}">
                             <h6>
                                 ${subp.signo.charAt(0).toUpperCase() + subp.signo.slice(1)} - Nivel 2
                                 <small class="text-muted">(Elemento: ${subp.elemento}, Regente: ${subp.regente})</small>
@@ -2422,11 +2426,8 @@ function calcularYMostrarRelevoZodiacal() {
                     
                     if (subp.subperiodos && subp.subperiodos.length > 0) {
                         subp.subperiodos.forEach(subsubp => {
-                            // Determinar clase CSS para elemento
-                            const subSubElementoClass = subsubp.elemento ? subsubp.elemento.toLowerCase() : 'neutral';
-                            
                             html += `
-                                <div class="relevo-subsubperiodo ${subSubElementoClass}">
+                                <div class="relevo-subsubperiodo ${subsubp.elemento.toLowerCase()}">
                                     <h6>
                                         ${subsubp.signo.charAt(0).toUpperCase() + subsubp.signo.slice(1)} - Nivel 3
                                         <small class="text-muted">(Elemento: ${subsubp.elemento}, Regente: ${subsubp.regente})</small>
@@ -2436,8 +2437,28 @@ function calcularYMostrarRelevoZodiacal() {
                                         <br>
                                         Edad: ${subsubp.edad} años
                                     </p>
-                                </div>
                             `;
+                            
+                            // NIVEL 4
+                            if (subsubp.subperiodos && subsubp.subperiodos.length > 0) {
+                                subsubp.subperiodos.forEach(subsubsubp => {
+                                    html += `
+                                        <div class="relevo-subsubsubperiodo ${subsubsubp.elemento.toLowerCase()}" style="margin-left: 60px; margin-bottom: 5px; border-left: 4px solid ${elementoInfo.borde};">
+                                            <h6>
+                                                ${subsubsubp.signo.charAt(0).toUpperCase() + subsubsubp.signo.slice(1)} - Nivel 4
+                                                <small class="text-muted">(Elemento: ${subsubsubp.elemento}, Regente: ${subsubsubp.regente})</small>
+                                            </h6>
+                                            <p>
+                                                Sub-sub-subperiodo: ${subsubsubp.fechaInicio} - ${subsubsubp.fechaFin}
+                                                <br>
+                                                Edad: ${subsubsubp.edad} años
+                                            </p>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            
+                            html += `</div>`;
                         });
                     }
                     
@@ -2747,6 +2768,7 @@ function formatearFecha(fecha) {
     });
 }
         
+// Implementación de la función calcularRelevoZodiacal (si no está implementada o necesita mejoras)
 function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
     // Convertir fechas a objetos Date
     const fechaNac = new Date(birthDate);
@@ -3039,12 +3061,7 @@ function calcularRelevoZodiacal(birthDate, ascendente, transitDate) {
             // Event listeners para filtros de predicciones
             yearFilterSelect.addEventListener('change', renderPredictions);
             tipoPrediccionSelect.addEventListener('change', renderPredictions);
-            
-            // Event listener para el botón de Relevo Zodiacal
-            if (btnMostrarRelevo) {
-                btnMostrarRelevo.addEventListener('click', calcularYMostrarRelevoZodiacal);
-            }
-            
+                       
             // Configurar inicialmente los controles de tránsitos
             toggleTransits();
             
