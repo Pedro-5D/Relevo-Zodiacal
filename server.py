@@ -184,24 +184,6 @@ DIGNIDADES = {
         'caida': ['TAURO', 'ESCORPIO', 'PEGASO'], 
         'exilio': ['CÁNCER', 'PISCIS', 'CAPRICORNIO', 'VIRGO']
     },
-    'URANO': {
-        'domicilio': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
-        'exaltacion': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
-        'caida': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'],  # TAURO está en caída para URANO
-        'exilio': ['CÁNCER', 'PISCIS', 'SAGITARIO']
-    },
-    'NEPTUNO': {
-        'domicilio': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO'], 
-        'exaltacion': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
-        'caida': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
-        'exilio': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO']
-    },
-    'PLUTÓN': {  # Con acento
-        'domicilio': ['TAURO', 'LIBRA', 'ACUARIO', 'OFIUCO'], 
-        'exaltacion': ['LEO', 'ARIES', 'ESCORPIO', 'PEGASO'], 
-        'caida': ['CÁNCER', 'PISCIS', 'SAGITARIO'], 
-        'exilio': ['GÉMINIS', 'CAPRICORNIO', 'VIRGO']  # CAPRICORNIO está en exilio para PLUTÓN
-    }
 }
 
 # Datos para cálculo de picos y presagios - Actualizados para considerar a Mercurio como maléfico
